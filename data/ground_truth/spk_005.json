@@ -1,0 +1,14 @@
+{
+  "id": "spk_005",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2025/12/440",
+    "customer_name": "Agus Saputra",
+    "model": "Xpander",
+    "variant": "Exceed",
+    "color": "Putih",
+    "price": 255000000,
+    "payment_method": "credit"
+  }
+}

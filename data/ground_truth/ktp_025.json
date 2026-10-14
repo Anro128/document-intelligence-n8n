@@ -1,0 +1,12 @@
+{
+  "id": "ktp_025",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3271014601804348",
+    "name": "SARI PERMATA",
+    "birth_date": "1980-01-06",
+    "address": "JL. KENANGA NO. 108",
+    "gender": "female"
+  }
+}

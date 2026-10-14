@@ -1,0 +1,12 @@
+{
+  "id": "ktp_001",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3374015206957435",
+    "name": "RATNA UTAMI",
+    "birth_date": "1995-06-12",
+    "address": "JL. SUDIRMAN NO. 65",
+    "gender": "female"
+  }
+}

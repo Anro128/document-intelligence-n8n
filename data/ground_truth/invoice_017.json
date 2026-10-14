@@ -1,0 +1,27 @@
+{
+  "id": "invoice_017",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2025/5001",
+    "date": "2025-10-16",
+    "vendor": "CV Roda Mas",
+    "line_items": [
+      {
+        "description": "Accu Cleaner",
+        "quantity": 4,
+        "unit_price": 208000,
+        "amount": 832000
+      },
+      {
+        "description": "Accu Cleaner",
+        "quantity": 2,
+        "unit_price": 867000,
+        "amount": 1734000
+      }
+    ],
+    "subtotal": 2566000,
+    "tax": 282260,
+    "total": 2848260
+  }
+}

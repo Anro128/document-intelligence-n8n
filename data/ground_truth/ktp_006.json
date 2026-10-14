@@ -1,0 +1,12 @@
+{
+  "id": "ktp_006",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "5101016605749664",
+    "name": "AGUS FIRMANSYAH",
+    "birth_date": "1974-05-26",
+    "address": "JL. MERDEKA NO. 109",
+    "gender": "female"
+  }
+}

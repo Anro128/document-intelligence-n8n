@@ -1,0 +1,14 @@
+{
+  "id": "spk_029",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2025/12/735",
+    "customer_name": "Maya Rahayu",
+    "model": "Avanza",
+    "variant": "G",
+    "color": "Biru",
+    "price": 245000000,
+    "payment_method": "credit"
+  }
+}

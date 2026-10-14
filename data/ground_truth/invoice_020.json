@@ -1,0 +1,45 @@
+{
+  "id": "invoice_020",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/4979",
+    "date": "2026-10-09",
+    "vendor": "PT Autoparts Nusantara",
+    "line_items": [
+      {
+        "description": "Kampas Rem Depan",
+        "quantity": 3,
+        "unit_price": 2320000,
+        "amount": 6960000
+      },
+      {
+        "description": "Servis Berkala",
+        "quantity": 2,
+        "unit_price": 1772000,
+        "amount": 3544000
+      },
+      {
+        "description": "Spooring Balancing",
+        "quantity": 4,
+        "unit_price": 2824000,
+        "amount": 11296000
+      },
+      {
+        "description": "Lampu LED H4",
+        "quantity": 2,
+        "unit_price": 2571000,
+        "amount": 5142000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 3,
+        "unit_price": 1713000,
+        "amount": 5139000
+      }
+    ],
+    "subtotal": 32081000,
+    "tax": 3528910,
+    "total": 35609910
+  }
+}

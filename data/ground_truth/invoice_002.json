@@ -1,0 +1,39 @@
+{
+  "id": "invoice_002",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/5882",
+    "date": "2026-07-02",
+    "vendor": "PT Karoseri Prima",
+    "line_items": [
+      {
+        "description": "Spooring Balancing",
+        "quantity": 1,
+        "unit_price": 703000,
+        "amount": 703000
+      },
+      {
+        "description": "Aki 45Ah",
+        "quantity": 4,
+        "unit_price": 1443000,
+        "amount": 5772000
+      },
+      {
+        "description": "Ban 185/65 R15",
+        "quantity": 2,
+        "unit_price": 931000,
+        "amount": 1862000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 1,
+        "unit_price": 429000,
+        "amount": 429000
+      }
+    ],
+    "subtotal": 8766000,
+    "tax": 964260,
+    "total": 9730260
+  }
+}

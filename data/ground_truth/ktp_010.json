@@ -1,0 +1,12 @@
+{
+  "id": "ktp_010",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "5101016006938168",
+    "name": "SITI HIDAYAT",
+    "birth_date": "1993-06-20",
+    "address": "JL. DIPONEGORO NO. 14",
+    "gender": "female"
+  }
+}

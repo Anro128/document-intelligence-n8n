@@ -1,0 +1,39 @@
+{
+  "id": "invoice_028",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2025/1730",
+    "date": "2025-05-26",
+    "vendor": "PT Sumber Otomotif Jaya",
+    "line_items": [
+      {
+        "description": "Oli Mesin 4L",
+        "quantity": 1,
+        "unit_price": 2368000,
+        "amount": 2368000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 3,
+        "unit_price": 2232000,
+        "amount": 6696000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 3,
+        "unit_price": 332000,
+        "amount": 996000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 3,
+        "unit_price": 101000,
+        "amount": 303000
+      }
+    ],
+    "subtotal": 10363000,
+    "tax": 1139930,
+    "total": 11502930
+  }
+}

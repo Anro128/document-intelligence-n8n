@@ -1,0 +1,51 @@
+{
+  "id": "invoice_013",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2025/9225",
+    "date": "2025-01-11",
+    "vendor": "PT Sumber Otomotif Jaya",
+    "line_items": [
+      {
+        "description": "Servis Berkala",
+        "quantity": 1,
+        "unit_price": 1767000,
+        "amount": 1767000
+      },
+      {
+        "description": "Busi Iridium",
+        "quantity": 3,
+        "unit_price": 1118000,
+        "amount": 3354000
+      },
+      {
+        "description": "Aki 45Ah",
+        "quantity": 3,
+        "unit_price": 1027000,
+        "amount": 3081000
+      },
+      {
+        "description": "Servis Berkala",
+        "quantity": 4,
+        "unit_price": 586000,
+        "amount": 2344000
+      },
+      {
+        "description": "Ban 185/65 R15",
+        "quantity": 3,
+        "unit_price": 1922000,
+        "amount": 5766000
+      },
+      {
+        "description": "Accu Cleaner",
+        "quantity": 1,
+        "unit_price": 88000,
+        "amount": 88000
+      }
+    ],
+    "subtotal": 16400000,
+    "tax": 1804000,
+    "total": 18204000
+  }
+}

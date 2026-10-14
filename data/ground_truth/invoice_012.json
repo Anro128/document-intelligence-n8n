@@ -1,0 +1,45 @@
+{
+  "id": "invoice_012",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/3045",
+    "date": "2026-07-19",
+    "vendor": "CV Roda Mas",
+    "line_items": [
+      {
+        "description": "Aki 45Ah",
+        "quantity": 2,
+        "unit_price": 827000,
+        "amount": 1654000
+      },
+      {
+        "description": "Lampu LED H4",
+        "quantity": 2,
+        "unit_price": 289000,
+        "amount": 578000
+      },
+      {
+        "description": "Oli Mesin 4L",
+        "quantity": 1,
+        "unit_price": 1334000,
+        "amount": 1334000
+      },
+      {
+        "description": "Accu Cleaner",
+        "quantity": 1,
+        "unit_price": 2442000,
+        "amount": 2442000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 2,
+        "unit_price": 282000,
+        "amount": 564000
+      }
+    ],
+    "subtotal": 6572000,
+    "tax": 722920,
+    "total": 7294920
+  }
+}

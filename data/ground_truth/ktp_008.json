@@ -1,0 +1,12 @@
+{
+  "id": "ktp_008",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "5101011603628503",
+    "name": "HENDRA PERMATA",
+    "birth_date": "1962-03-16",
+    "address": "JL. DIPONEGORO NO. 72",
+    "gender": "male"
+  }
+}

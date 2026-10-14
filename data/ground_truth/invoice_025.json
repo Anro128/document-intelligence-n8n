@@ -1,0 +1,27 @@
+{
+  "id": "invoice_025",
+  "doc_type": "invoice",
+  "injected_error": "total_mismatch",
+  "fields": {
+    "invoice_number": "INV/2025/2978",
+    "date": "2025-06-24",
+    "vendor": "PT Karoseri Prima",
+    "line_items": [
+      {
+        "description": "Lampu LED H4",
+        "quantity": 4,
+        "unit_price": 2474000,
+        "amount": 9896000
+      },
+      {
+        "description": "Servis Berkala",
+        "quantity": 1,
+        "unit_price": 393000,
+        "amount": 393000
+      }
+    ],
+    "subtotal": 10289000,
+    "tax": 1131790,
+    "total": 11499790
+  }
+}

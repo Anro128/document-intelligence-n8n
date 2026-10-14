@@ -1,0 +1,12 @@
+{
+  "id": "ktp_011",
+  "doc_type": "ktp",
+  "injected_error": "nik_birth_mismatch",
+  "fields": {
+    "nik": "3578011802951859",
+    "name": "PUTRI NUGROHO",
+    "birth_date": "1995-01-18",
+    "address": "JL. MAWAR NO. 40",
+    "gender": "male"
+  }
+}

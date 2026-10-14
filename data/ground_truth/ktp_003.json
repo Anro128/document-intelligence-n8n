@@ -1,0 +1,12 @@
+{
+  "id": "ktp_003",
+  "doc_type": "ktp",
+  "injected_error": "nik_length",
+  "fields": {
+    "nik": "347101680291020",
+    "name": "RIZKY FIRMANSYAH",
+    "birth_date": "1991-02-28",
+    "address": "JL. DIPONEGORO NO. 123",
+    "gender": "female"
+  }
+}

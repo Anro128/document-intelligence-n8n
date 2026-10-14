@@ -1,0 +1,14 @@
+{
+  "id": "spk_019",
+  "doc_type": "spk",
+  "injected_error": "price_out_of_range",
+  "fields": {
+    "spk_number": "SPK/2026/09/782",
+    "customer_name": "Dewi Nugroho",
+    "model": "Avanza",
+    "variant": "Veloz",
+    "color": "Putih",
+    "price": 660000000,
+    "payment_method": "leasing"
+  }
+}

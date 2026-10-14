@@ -1,0 +1,14 @@
+{
+  "id": "spk_003",
+  "doc_type": "spk",
+  "injected_error": "price_out_of_range",
+  "fields": {
+    "spk_number": "SPK/2026/06/405",
+    "customer_name": "Maya Santoso",
+    "model": "Avanza",
+    "variant": "Veloz",
+    "color": "Merah",
+    "price": 817000000,
+    "payment_method": "credit"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "id": "invoice_011",
+  "doc_type": "invoice",
+  "injected_error": "total_mismatch",
+  "fields": {
+    "invoice_number": "INV/2026/2698",
+    "date": "2026-08-10",
+    "vendor": "PT Sumber Otomotif Jaya",
+    "line_items": [
+      {
+        "description": "Wiper Blade",
+        "quantity": 2,
+        "unit_price": 731000,
+        "amount": 1462000
+      },
+      {
+        "description": "Busi Iridium",
+        "quantity": 4,
+        "unit_price": 2021000,
+        "amount": 8084000
+      }
+    ],
+    "subtotal": 9546000,
+    "tax": 1050060,
+    "total": 11068060
+  }
+}

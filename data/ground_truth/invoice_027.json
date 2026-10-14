@@ -1,0 +1,45 @@
+{
+  "id": "invoice_027",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2025/9434",
+    "date": "2025-11-24",
+    "vendor": "CV Mitra Sparepart",
+    "line_items": [
+      {
+        "description": "Busi Iridium",
+        "quantity": 1,
+        "unit_price": 2360000,
+        "amount": 2360000
+      },
+      {
+        "description": "Aki 45Ah",
+        "quantity": 4,
+        "unit_price": 2915000,
+        "amount": 11660000
+      },
+      {
+        "description": "Lampu LED H4",
+        "quantity": 3,
+        "unit_price": 737000,
+        "amount": 2211000
+      },
+      {
+        "description": "Aki 45Ah",
+        "quantity": 1,
+        "unit_price": 720000,
+        "amount": 720000
+      },
+      {
+        "description": "Oli Mesin 4L",
+        "quantity": 1,
+        "unit_price": 2420000,
+        "amount": 2420000
+      }
+    ],
+    "subtotal": 19371000,
+    "tax": 2130810,
+    "total": 21501810
+  }
+}

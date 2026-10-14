@@ -1,0 +1,12 @@
+{
+  "id": "ktp_017",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "5101011010826952",
+    "name": "AGUS RAHAYU",
+    "birth_date": "1982-10-10",
+    "address": "JL. SUDIRMAN NO. 117",
+    "gender": "male"
+  }
+}

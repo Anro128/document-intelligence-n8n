@@ -1,0 +1,12 @@
+{
+  "id": "ktp_019",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "5101011901885978",
+    "name": "SITI NUGROHO",
+    "birth_date": "1988-01-19",
+    "address": "JL. KENANGA NO. 24",
+    "gender": "male"
+  }
+}

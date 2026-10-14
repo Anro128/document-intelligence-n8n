@@ -1,0 +1,6 @@
+.env
+__pycache__/
+*.pyc
+n8n_data/
+caddy_data/
+eval/raw/

@@ -1,0 +1,14 @@
+{
+  "id": "spk_027",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2025/11/340",
+    "customer_name": "Lestari Santoso",
+    "model": "HR-V",
+    "variant": "Prestige",
+    "color": "Hitam",
+    "price": 375000000,
+    "payment_method": "credit"
+  }
+}

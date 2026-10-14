@@ -1,0 +1,14 @@
+{
+  "id": "spk_022",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/09/245",
+    "customer_name": "Maya Wijaya",
+    "model": "Innova Zenix",
+    "variant": "G",
+    "color": "Silver",
+    "price": 575000000,
+    "payment_method": "cash"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ktp_026",
+  "doc_type": "ktp",
+  "injected_error": "nik_length",
+  "fields": {
+    "nik": "357801020101784",
+    "name": "MAYA RAHAYU",
+    "birth_date": "2001-01-02",
+    "address": "JL. MAWAR NO. 126",
+    "gender": "male"
+  }
+}

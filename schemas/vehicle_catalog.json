@@ -1,0 +1,8 @@
+{
+  "Avanza": { "price": [235000000, 320000000], "variants": ["E", "G", "Veloz"] },
+  "Brio": { "price": [165000000, 280000000], "variants": ["Satya", "E", "RS"] },
+  "HR-V": { "price": [370000000, 520000000], "variants": ["S", "E", "Prestige"] },
+  "Xpander": { "price": [250000000, 350000000], "variants": ["GLS", "Exceed", "Ultimate"] },
+  "Innova Zenix": { "price": [440000000, 620000000], "variants": ["G", "V", "Q"] },
+  "Pajero Sport": { "price": [520000000, 720000000], "variants": ["Exceed", "Dakar", "Dakar Ultimate"] }
+}

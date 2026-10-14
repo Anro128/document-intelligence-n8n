@@ -1,0 +1,14 @@
+{
+  "id": "spk_009",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/09/481",
+    "customer_name": "Rizky Rahayu",
+    "model": "Pajero Sport",
+    "variant": "Dakar",
+    "color": "Biru",
+    "price": 715000000,
+    "payment_method": "credit"
+  }
+}

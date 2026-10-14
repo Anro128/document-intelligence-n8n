@@ -1,0 +1,45 @@
+{
+  "id": "invoice_021",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/7785",
+    "date": "2026-02-01",
+    "vendor": "PT Karoseri Prima",
+    "line_items": [
+      {
+        "description": "Filter Udara",
+        "quantity": 2,
+        "unit_price": 2748000,
+        "amount": 5496000
+      },
+      {
+        "description": "Servis Berkala",
+        "quantity": 3,
+        "unit_price": 2161000,
+        "amount": 6483000
+      },
+      {
+        "description": "Busi Iridium",
+        "quantity": 3,
+        "unit_price": 432000,
+        "amount": 1296000
+      },
+      {
+        "description": "Busi Iridium",
+        "quantity": 3,
+        "unit_price": 970000,
+        "amount": 2910000
+      },
+      {
+        "description": "Oli Mesin 4L",
+        "quantity": 2,
+        "unit_price": 150000,
+        "amount": 300000
+      }
+    ],
+    "subtotal": 16485000,
+    "tax": 1813350,
+    "total": 18298350
+  }
+}

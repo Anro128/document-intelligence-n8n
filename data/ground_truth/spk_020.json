@@ -1,0 +1,14 @@
+{
+  "id": "spk_020",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/04/242",
+    "customer_name": "Bayu Setiawan",
+    "model": "Xpander",
+    "variant": "GLS",
+    "color": "Abu-abu",
+    "price": 305000000,
+    "payment_method": "cash"
+  }
+}

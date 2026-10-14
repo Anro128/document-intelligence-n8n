@@ -1,0 +1,14 @@
+{
+  "id": "spk_021",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/02/460",
+    "customer_name": "Rizky Utami",
+    "model": "Brio",
+    "variant": "Satya",
+    "color": "Silver",
+    "price": 185000000,
+    "payment_method": "credit"
+  }
+}

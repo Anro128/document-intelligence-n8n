@@ -1,0 +1,14 @@
+{
+  "id": "spk_010",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/09/661",
+    "customer_name": "Lestari Nugroho",
+    "model": "HR-V",
+    "variant": "E",
+    "color": "Putih",
+    "price": 440000000,
+    "payment_method": "cash"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ktp_012",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3374011107778319",
+    "name": "RIZKY WIJAYA",
+    "birth_date": "1977-07-11",
+    "address": "JL. MELATI NO. 73",
+    "gender": "male"
+  }
+}

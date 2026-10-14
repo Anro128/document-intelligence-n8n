@@ -1,0 +1,33 @@
+{
+  "id": "invoice_008",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/5108",
+    "date": "2026-03-18",
+    "vendor": "PT Karoseri Prima",
+    "line_items": [
+      {
+        "description": "Accu Cleaner",
+        "quantity": 2,
+        "unit_price": 2752000,
+        "amount": 5504000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 2,
+        "unit_price": 1135000,
+        "amount": 2270000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 4,
+        "unit_price": 917000,
+        "amount": 3668000
+      }
+    ],
+    "subtotal": 11442000,
+    "tax": 1258620,
+    "total": 12700620
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "spk_015",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/07/974",
+    "customer_name": "Lestari Nugroho",
+    "model": "Avanza",
+    "variant": "Veloz",
+    "color": "Silver",
+    "price": 300000000,
+    "payment_method": "cash"
+  }
+}

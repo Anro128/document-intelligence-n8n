@@ -1,0 +1,12 @@
+{
+  "id": "ktp_015",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "5101011011003728",
+    "name": "AGUS HIDAYAT",
+    "birth_date": "2000-11-10",
+    "address": "JL. MAWAR NO. 112",
+    "gender": "male"
+  }
+}

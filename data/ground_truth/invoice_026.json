@@ -1,0 +1,27 @@
+{
+  "id": "invoice_026",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2024/1125",
+    "date": "2024-12-13",
+    "vendor": "PT Autoparts Nusantara",
+    "line_items": [
+      {
+        "description": "Spooring Balancing",
+        "quantity": 4,
+        "unit_price": 129000,
+        "amount": 516000
+      },
+      {
+        "description": "Busi Iridium",
+        "quantity": 1,
+        "unit_price": 1483000,
+        "amount": 1483000
+      }
+    ],
+    "subtotal": 1999000,
+    "tax": 219890,
+    "total": 2218890
+  }
+}

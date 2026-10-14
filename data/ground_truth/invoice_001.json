@@ -1,0 +1,39 @@
+{
+  "id": "invoice_001",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/3812",
+    "date": "2026-02-28",
+    "vendor": "CV Roda Mas",
+    "line_items": [
+      {
+        "description": "Kampas Rem Depan",
+        "quantity": 2,
+        "unit_price": 964000,
+        "amount": 1928000
+      },
+      {
+        "description": "Spooring Balancing",
+        "quantity": 1,
+        "unit_price": 2821000,
+        "amount": 2821000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 1,
+        "unit_price": 2468000,
+        "amount": 2468000
+      },
+      {
+        "description": "Filter Udara",
+        "quantity": 1,
+        "unit_price": 172000,
+        "amount": 172000
+      }
+    ],
+    "subtotal": 7389000,
+    "tax": 812790,
+    "total": 8201790
+  }
+}

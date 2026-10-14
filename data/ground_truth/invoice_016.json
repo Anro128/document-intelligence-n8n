@@ -1,0 +1,51 @@
+{
+  "id": "invoice_016",
+  "doc_type": "invoice",
+  "injected_error": "total_mismatch",
+  "fields": {
+    "invoice_number": "INV/2025/0407",
+    "date": "2025-08-13",
+    "vendor": "PT Karoseri Prima",
+    "line_items": [
+      {
+        "description": "Kampas Rem Depan",
+        "quantity": 2,
+        "unit_price": 1810000,
+        "amount": 3620000
+      },
+      {
+        "description": "Ban 185/65 R15",
+        "quantity": 1,
+        "unit_price": 1312000,
+        "amount": 1312000
+      },
+      {
+        "description": "Busi Iridium",
+        "quantity": 1,
+        "unit_price": 1515000,
+        "amount": 1515000
+      },
+      {
+        "description": "Filter Udara",
+        "quantity": 2,
+        "unit_price": 2781000,
+        "amount": 5562000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 3,
+        "unit_price": 2343000,
+        "amount": 7029000
+      },
+      {
+        "description": "Kampas Rem Depan",
+        "quantity": 2,
+        "unit_price": 1019000,
+        "amount": 2038000
+      }
+    ],
+    "subtotal": 21076000,
+    "tax": 2318360,
+    "total": 22933360
+  }
+}

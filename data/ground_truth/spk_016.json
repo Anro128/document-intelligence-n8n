@@ -1,0 +1,14 @@
+{
+  "id": "spk_016",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/04/898",
+    "customer_name": "Siti Firmansyah",
+    "model": "Avanza",
+    "variant": "E",
+    "color": "Merah",
+    "price": 280000000,
+    "payment_method": "leasing"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "spk_004",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/08/390",
+    "customer_name": "Ratna Pratama",
+    "model": "HR-V",
+    "variant": "S",
+    "color": "Abu-abu",
+    "price": 385000000,
+    "payment_method": "leasing"
+  }
+}

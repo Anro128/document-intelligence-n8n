@@ -1,0 +1,45 @@
+{
+  "id": "invoice_022",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/7613",
+    "date": "2026-05-26",
+    "vendor": "Bengkel Resmi Maju Bersama",
+    "line_items": [
+      {
+        "description": "Servis Berkala",
+        "quantity": 2,
+        "unit_price": 654000,
+        "amount": 1308000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 1,
+        "unit_price": 486000,
+        "amount": 486000
+      },
+      {
+        "description": "Spooring Balancing",
+        "quantity": 2,
+        "unit_price": 770000,
+        "amount": 1540000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 4,
+        "unit_price": 255000,
+        "amount": 1020000
+      },
+      {
+        "description": "Accu Cleaner",
+        "quantity": 2,
+        "unit_price": 547000,
+        "amount": 1094000
+      }
+    ],
+    "subtotal": 5448000,
+    "tax": 599280,
+    "total": 6047280
+  }
+}

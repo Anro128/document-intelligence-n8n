@@ -1,0 +1,33 @@
+{
+  "id": "invoice_007",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2025/5039",
+    "date": "2025-10-03",
+    "vendor": "CV Mitra Sparepart",
+    "line_items": [
+      {
+        "description": "Filter Oli",
+        "quantity": 3,
+        "unit_price": 711000,
+        "amount": 2133000
+      },
+      {
+        "description": "Ban 185/65 R15",
+        "quantity": 1,
+        "unit_price": 2503000,
+        "amount": 2503000
+      },
+      {
+        "description": "Filter Udara",
+        "quantity": 4,
+        "unit_price": 129000,
+        "amount": 516000
+      }
+    ],
+    "subtotal": 5152000,
+    "tax": 566720,
+    "total": 5718720
+  }
+}

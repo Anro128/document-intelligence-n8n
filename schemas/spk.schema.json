@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SPK",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spk_number", "customer_name", "model", "variant", "color", "price", "payment_method"],
+  "properties": {
+    "spk_number": { "type": "string", "minLength": 1 },
+    "customer_name": { "type": "string", "minLength": 1 },
+    "model": { "type": "string", "minLength": 1 },
+    "variant": { "type": "string", "minLength": 1 },
+    "color": { "type": "string", "minLength": 1 },
+    "price": { "type": "number", "exclusiveMinimum": 0 },
+    "payment_method": { "type": "string", "enum": ["cash", "credit", "leasing"] }
+  }
+}

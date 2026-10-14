@@ -1,0 +1,14 @@
+{
+  "id": "spk_007",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/01/199",
+    "customer_name": "Dewi Setiawan",
+    "model": "Brio",
+    "variant": "Satya",
+    "color": "Putih",
+    "price": 215000000,
+    "payment_method": "leasing"
+  }
+}

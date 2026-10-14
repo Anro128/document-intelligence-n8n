@@ -1,0 +1,33 @@
+{
+  "id": "invoice_004",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/3753",
+    "date": "2026-08-13",
+    "vendor": "PT Karoseri Prima",
+    "line_items": [
+      {
+        "description": "Accu Cleaner",
+        "quantity": 2,
+        "unit_price": 719000,
+        "amount": 1438000
+      },
+      {
+        "description": "Servis Berkala",
+        "quantity": 4,
+        "unit_price": 1155000,
+        "amount": 4620000
+      },
+      {
+        "description": "Ban 185/65 R15",
+        "quantity": 2,
+        "unit_price": 2854000,
+        "amount": 5708000
+      }
+    ],
+    "subtotal": 11766000,
+    "tax": 1294260,
+    "total": 13060260
+  }
+}

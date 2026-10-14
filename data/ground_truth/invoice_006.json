@@ -1,0 +1,51 @@
+{
+  "id": "invoice_006",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/8202",
+    "date": "2026-01-13",
+    "vendor": "Bengkel Resmi Maju Bersama",
+    "line_items": [
+      {
+        "description": "Aki 45Ah",
+        "quantity": 4,
+        "unit_price": 2217000,
+        "amount": 8868000
+      },
+      {
+        "description": "Spooring Balancing",
+        "quantity": 1,
+        "unit_price": 2836000,
+        "amount": 2836000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 1,
+        "unit_price": 2842000,
+        "amount": 2842000
+      },
+      {
+        "description": "Ban 185/65 R15",
+        "quantity": 3,
+        "unit_price": 2675000,
+        "amount": 8025000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 1,
+        "unit_price": 1252000,
+        "amount": 1252000
+      },
+      {
+        "description": "Oli Mesin 4L",
+        "quantity": 2,
+        "unit_price": 1908000,
+        "amount": 3816000
+      }
+    ],
+    "subtotal": 27639000,
+    "tax": 3040290,
+    "total": 30679290
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "spk_030",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/01/821",
+    "customer_name": "Bayu Saputra",
+    "model": "Xpander",
+    "variant": "Ultimate",
+    "color": "Putih",
+    "price": 290000000,
+    "payment_method": "cash"
+  }
+}

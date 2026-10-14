@@ -1,0 +1,14 @@
+{
+  "id": "spk_011",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/07/981",
+    "customer_name": "Wulan Setiawan",
+    "model": "Xpander",
+    "variant": "Ultimate",
+    "color": "Hitam",
+    "price": 340000000,
+    "payment_method": "credit"
+  }
+}

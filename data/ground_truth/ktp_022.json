@@ -1,0 +1,12 @@
+{
+  "id": "ktp_022",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3578012206898851",
+    "name": "RIZKY KUSUMA",
+    "birth_date": "1989-06-22",
+    "address": "JL. KENANGA NO. 107",
+    "gender": "male"
+  }
+}

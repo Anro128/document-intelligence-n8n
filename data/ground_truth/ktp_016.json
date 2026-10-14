@@ -1,0 +1,12 @@
+{
+  "id": "ktp_016",
+  "doc_type": "ktp",
+  "injected_error": "nik_birth_mismatch",
+  "fields": {
+    "nik": "3471015908931294",
+    "name": "RIZKY HIDAYAT",
+    "birth_date": "1993-07-19",
+    "address": "JL. CEMPAKA NO. 62",
+    "gender": "female"
+  }
+}

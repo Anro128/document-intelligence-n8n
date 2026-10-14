@@ -1,0 +1,14 @@
+{
+  "id": "spk_024",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/02/045",
+    "customer_name": "Budi Kusuma",
+    "model": "HR-V",
+    "variant": "Prestige",
+    "color": "Merah",
+    "price": 380000000,
+    "payment_method": "leasing"
+  }
+}

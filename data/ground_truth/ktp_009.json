@@ -1,0 +1,12 @@
+{
+  "id": "ktp_009",
+  "doc_type": "ktp",
+  "injected_error": "nik_length",
+  "fields": {
+    "nik": "327101670702901",
+    "name": "WULAN NUGROHO",
+    "birth_date": "2002-07-27",
+    "address": "JL. MAWAR NO. 81",
+    "gender": "female"
+  }
+}

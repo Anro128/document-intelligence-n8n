@@ -1,0 +1,12 @@
+{
+  "id": "ktp_005",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3174042205731331",
+    "name": "ANDI FIRMANSYAH",
+    "birth_date": "1973-05-22",
+    "address": "JL. MERDEKA NO. 45",
+    "gender": "male"
+  }
+}

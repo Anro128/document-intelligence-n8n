@@ -1,0 +1,12 @@
+{
+  "id": "ktp_014",
+  "doc_type": "ktp",
+  "injected_error": "nik_length",
+  "fields": {
+    "nik": "327101680769253",
+    "name": "BUDI UTAMI",
+    "birth_date": "1969-07-28",
+    "address": "JL. SUDIRMAN NO. 87",
+    "gender": "female"
+  }
+}

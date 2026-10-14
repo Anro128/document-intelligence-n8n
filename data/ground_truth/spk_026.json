@@ -1,0 +1,14 @@
+{
+  "id": "spk_026",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/09/811",
+    "customer_name": "Maya Hidayat",
+    "model": "Brio",
+    "variant": "RS",
+    "color": "Abu-abu",
+    "price": 175000000,
+    "payment_method": "cash"
+  }
+}

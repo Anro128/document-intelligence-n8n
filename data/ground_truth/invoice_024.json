@@ -1,0 +1,51 @@
+{
+  "id": "invoice_024",
+  "doc_type": "invoice",
+  "injected_error": "total_mismatch",
+  "fields": {
+    "invoice_number": "INV/2025/0476",
+    "date": "2025-05-30",
+    "vendor": "PT Autoparts Nusantara",
+    "line_items": [
+      {
+        "description": "Oli Mesin 4L",
+        "quantity": 4,
+        "unit_price": 1753000,
+        "amount": 7012000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 2,
+        "unit_price": 1770000,
+        "amount": 3540000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 1,
+        "unit_price": 2408000,
+        "amount": 2408000
+      },
+      {
+        "description": "Ban 185/65 R15",
+        "quantity": 4,
+        "unit_price": 74000,
+        "amount": 296000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 3,
+        "unit_price": 1647000,
+        "amount": 4941000
+      },
+      {
+        "description": "Busi Iridium",
+        "quantity": 2,
+        "unit_price": 2049000,
+        "amount": 4098000
+      }
+    ],
+    "subtotal": 22295000,
+    "tax": 2452450,
+    "total": 24980450
+  }
+}

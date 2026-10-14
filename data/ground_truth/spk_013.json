@@ -1,0 +1,14 @@
+{
+  "id": "spk_013",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/06/742",
+    "customer_name": "Bayu Nugroho",
+    "model": "Avanza",
+    "variant": "E",
+    "color": "Silver",
+    "price": 285000000,
+    "payment_method": "cash"
+  }
+}

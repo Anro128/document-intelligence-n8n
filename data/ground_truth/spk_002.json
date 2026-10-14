@@ -1,0 +1,14 @@
+{
+  "id": "spk_002",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/03/678",
+    "customer_name": "Agus Nugroho",
+    "model": "Brio",
+    "variant": "RS",
+    "color": "Putih",
+    "price": 190000000,
+    "payment_method": "leasing"
+  }
+}

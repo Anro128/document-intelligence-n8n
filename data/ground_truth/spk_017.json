@@ -1,0 +1,14 @@
+{
+  "id": "spk_017",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2025/12/292",
+    "customer_name": "Sari Rahayu",
+    "model": "Pajero Sport",
+    "variant": "Exceed",
+    "color": "Abu-abu",
+    "price": 660000000,
+    "payment_method": "credit"
+  }
+}

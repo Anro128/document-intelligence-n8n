@@ -1,0 +1,39 @@
+{
+  "id": "invoice_003",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2025/7429",
+    "date": "2025-12-29",
+    "vendor": "PT Karoseri Prima",
+    "line_items": [
+      {
+        "description": "Busi Iridium",
+        "quantity": 3,
+        "unit_price": 2414000,
+        "amount": 7242000
+      },
+      {
+        "description": "Servis Berkala",
+        "quantity": 1,
+        "unit_price": 237000,
+        "amount": 237000
+      },
+      {
+        "description": "Filter Udara",
+        "quantity": 2,
+        "unit_price": 1235000,
+        "amount": 2470000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 2,
+        "unit_price": 463000,
+        "amount": 926000
+      }
+    ],
+    "subtotal": 10875000,
+    "tax": 1196250,
+    "total": 12071250
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "ktp_023",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3374010206016524",
+    "name": "LESTARI SETIAWAN",
+    "birth_date": "2001-06-02",
+    "address": "JL. MERDEKA NO. 32",
+    "gender": "male"
+  }
+}

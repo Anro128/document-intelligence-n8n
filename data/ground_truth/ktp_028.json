@@ -1,0 +1,12 @@
+{
+  "id": "ktp_028",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3271015611691100",
+    "name": "HENDRA SAPUTRA",
+    "birth_date": "1969-11-16",
+    "address": "JL. MAWAR NO. 24",
+    "gender": "female"
+  }
+}

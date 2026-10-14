@@ -1,0 +1,12 @@
+{
+  "id": "ktp_007",
+  "doc_type": "ktp",
+  "injected_error": "nik_length",
+  "fields": {
+    "nik": "337401501289659",
+    "name": "DONI WIJAYA",
+    "birth_date": "1989-12-10",
+    "address": "JL. DIPONEGORO NO. 21",
+    "gender": "female"
+  }
+}

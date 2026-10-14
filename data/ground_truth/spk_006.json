@@ -1,0 +1,14 @@
+{
+  "id": "spk_006",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/08/250",
+    "customer_name": "Agus Kusuma",
+    "model": "Brio",
+    "variant": "E",
+    "color": "Biru",
+    "price": 260000000,
+    "payment_method": "credit"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "invoice_014",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/4334",
+    "date": "2026-05-25",
+    "vendor": "CV Mitra Sparepart",
+    "line_items": [
+      {
+        "description": "Accu Cleaner",
+        "quantity": 3,
+        "unit_price": 696000,
+        "amount": 2088000
+      },
+      {
+        "description": "Servis Berkala",
+        "quantity": 3,
+        "unit_price": 2555000,
+        "amount": 7665000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 1,
+        "unit_price": 2785000,
+        "amount": 2785000
+      },
+      {
+        "description": "Filter Udara",
+        "quantity": 3,
+        "unit_price": 2767000,
+        "amount": 8301000
+      }
+    ],
+    "subtotal": 20839000,
+    "tax": 2292290,
+    "total": 23131290
+  }
+}

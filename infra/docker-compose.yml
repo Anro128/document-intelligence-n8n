@@ -1,0 +1,47 @@
+services:
+  n8n:
+    image: n8nio/n8n:${N8N_VERSION:-latest}
+    restart: unless-stopped
+    mem_limit: 700m
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      - N8N_HOST=${DOMAIN}
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${DOMAIN}/
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - N8N_DEFAULT_BINARY_DATA_MODE=filesystem
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=72
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
+      - NODE_OPTIONS=--max-old-space-size=512
+      - GENERIC_TIMEZONE=Asia/Jakarta
+      - TZ=Asia/Jakarta
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_ADMIN_CHAT_ID=${TELEGRAM_ADMIN_CHAT_ID}
+      - SHEET_ID=${SHEET_ID}
+      - PRIMARY_MODEL=${PRIMARY_MODEL:-claude-sonnet-5-5}
+      - FALLBACK_MODEL=${FALLBACK_MODEL:-gpt-4o-mini}
+      - CLASSIFY_MIN_CONFIDENCE=${CLASSIFY_MIN_CONFIDENCE:-0.7}
+      - DAILY_COST_CAP_USD=${DAILY_COST_CAP_USD:-2}
+    volumes:
+      - ./n8n_data:/home/node/.n8n
+      - ./files:/files
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    mem_limit: 100m
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./caddy_data:/data
+    depends_on:
+      - n8n

@@ -1,0 +1,14 @@
+{
+  "id": "spk_012",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/01/536",
+    "customer_name": "Doni Rahayu",
+    "model": "Innova Zenix",
+    "variant": "G",
+    "color": "Hitam",
+    "price": 495000000,
+    "payment_method": "leasing"
+  }
+}

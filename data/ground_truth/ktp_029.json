@@ -1,0 +1,12 @@
+{
+  "id": "ktp_029",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3471014212874713",
+    "name": "LESTARI FIRMANSYAH",
+    "birth_date": "1987-12-02",
+    "address": "JL. SUDIRMAN NO. 91",
+    "gender": "female"
+  }
+}

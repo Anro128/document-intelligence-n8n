@@ -1,0 +1,45 @@
+{
+  "id": "invoice_015",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2025/9190",
+    "date": "2025-07-29",
+    "vendor": "PT Karoseri Prima",
+    "line_items": [
+      {
+        "description": "Filter Udara",
+        "quantity": 3,
+        "unit_price": 258000,
+        "amount": 774000
+      },
+      {
+        "description": "Oli Mesin 4L",
+        "quantity": 4,
+        "unit_price": 1183000,
+        "amount": 4732000
+      },
+      {
+        "description": "Kampas Rem Depan",
+        "quantity": 1,
+        "unit_price": 1416000,
+        "amount": 1416000
+      },
+      {
+        "description": "Spooring Balancing",
+        "quantity": 3,
+        "unit_price": 711000,
+        "amount": 2133000
+      },
+      {
+        "description": "Spooring Balancing",
+        "quantity": 4,
+        "unit_price": 2309000,
+        "amount": 9236000
+      }
+    ],
+    "subtotal": 18291000,
+    "tax": 2012010,
+    "total": 20303010
+  }
+}

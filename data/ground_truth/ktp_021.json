@@ -1,0 +1,12 @@
+{
+  "id": "ktp_021",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3471015604030411",
+    "name": "LESTARI WIJAYA",
+    "birth_date": "2003-04-16",
+    "address": "JL. PAHLAWAN NO. 57",
+    "gender": "female"
+  }
+}

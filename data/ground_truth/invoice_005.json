@@ -1,0 +1,45 @@
+{
+  "id": "invoice_005",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/8349",
+    "date": "2026-05-21",
+    "vendor": "CV Roda Mas",
+    "line_items": [
+      {
+        "description": "Accu Cleaner",
+        "quantity": 4,
+        "unit_price": 2683000,
+        "amount": 10732000
+      },
+      {
+        "description": "Kampas Rem Depan",
+        "quantity": 2,
+        "unit_price": 1134000,
+        "amount": 2268000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 2,
+        "unit_price": 2349000,
+        "amount": 4698000
+      },
+      {
+        "description": "Wiper Blade",
+        "quantity": 3,
+        "unit_price": 2444000,
+        "amount": 7332000
+      },
+      {
+        "description": "Busi Iridium",
+        "quantity": 4,
+        "unit_price": 1532000,
+        "amount": 6128000
+      }
+    ],
+    "subtotal": 31158000,
+    "tax": 3427380,
+    "total": 34585380
+  }
+}

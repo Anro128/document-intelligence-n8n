@@ -1,0 +1,14 @@
+{
+  "id": "spk_023",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/08/299",
+    "customer_name": "Sari Utami",
+    "model": "Innova Zenix",
+    "variant": "G",
+    "color": "Biru",
+    "price": 610000000,
+    "payment_method": "leasing"
+  }
+}

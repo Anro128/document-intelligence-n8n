@@ -1,0 +1,12 @@
+{
+  "id": "ktp_002",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3271016009974637",
+    "name": "HENDRA UTAMI",
+    "birth_date": "1997-09-20",
+    "address": "JL. MERDEKA NO. 76",
+    "gender": "female"
+  }
+}

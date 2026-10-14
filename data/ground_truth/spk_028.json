@@ -1,0 +1,14 @@
+{
+  "id": "spk_028",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/05/821",
+    "customer_name": "Lestari Setiawan",
+    "model": "HR-V",
+    "variant": "E",
+    "color": "Biru",
+    "price": 395000000,
+    "payment_method": "credit"
+  }
+}

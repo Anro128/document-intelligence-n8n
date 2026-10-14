@@ -1,0 +1,39 @@
+{
+  "id": "invoice_030",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2024/8042",
+    "date": "2024-12-17",
+    "vendor": "CV Roda Mas",
+    "line_items": [
+      {
+        "description": "Busi Iridium",
+        "quantity": 1,
+        "unit_price": 2166000,
+        "amount": 2166000
+      },
+      {
+        "description": "Spooring Balancing",
+        "quantity": 1,
+        "unit_price": 1038000,
+        "amount": 1038000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 4,
+        "unit_price": 2051000,
+        "amount": 8204000
+      },
+      {
+        "description": "Accu Cleaner",
+        "quantity": 2,
+        "unit_price": 2878000,
+        "amount": 5756000
+      }
+    ],
+    "subtotal": 17164000,
+    "tax": 1888040,
+    "total": 19052040
+  }
+}

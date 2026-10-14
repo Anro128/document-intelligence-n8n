@@ -1,0 +1,39 @@
+{
+  "id": "invoice_029",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2025/6210",
+    "date": "2025-01-23",
+    "vendor": "CV Roda Mas",
+    "line_items": [
+      {
+        "description": "Wiper Blade",
+        "quantity": 4,
+        "unit_price": 1954000,
+        "amount": 7816000
+      },
+      {
+        "description": "Busi Iridium",
+        "quantity": 3,
+        "unit_price": 1370000,
+        "amount": 4110000
+      },
+      {
+        "description": "Accu Cleaner",
+        "quantity": 1,
+        "unit_price": 1192000,
+        "amount": 1192000
+      },
+      {
+        "description": "Lampu LED H4",
+        "quantity": 2,
+        "unit_price": 1953000,
+        "amount": 3906000
+      }
+    ],
+    "subtotal": 17024000,
+    "tax": 1872640,
+    "total": 18896640
+  }
+}

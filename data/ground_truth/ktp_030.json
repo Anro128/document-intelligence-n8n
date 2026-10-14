@@ -1,0 +1,12 @@
+{
+  "id": "ktp_030",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3271012210999122",
+    "name": "RATNA SETIAWAN",
+    "birth_date": "1999-10-22",
+    "address": "JL. SUDIRMAN NO. 8",
+    "gender": "male"
+  }
+}

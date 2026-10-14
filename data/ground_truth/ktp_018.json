@@ -1,0 +1,12 @@
+{
+  "id": "ktp_018",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3471012810600804",
+    "name": "BAYU NUGROHO",
+    "birth_date": "1960-10-28",
+    "address": "JL. DIPONEGORO NO. 74",
+    "gender": "male"
+  }
+}

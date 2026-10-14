@@ -1,0 +1,12 @@
+{
+  "id": "ktp_013",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "5101011101867750",
+    "name": "BAYU HIDAYAT",
+    "birth_date": "1986-01-11",
+    "address": "JL. CEMPAKA NO. 99",
+    "gender": "male"
+  }
+}

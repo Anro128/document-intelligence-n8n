@@ -1,0 +1,14 @@
+{
+  "id": "spk_018",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/01/541",
+    "customer_name": "Maya Kusuma",
+    "model": "HR-V",
+    "variant": "Prestige",
+    "color": "Abu-abu",
+    "price": 475000000,
+    "payment_method": "credit"
+  }
+}

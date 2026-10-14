@@ -1,0 +1,39 @@
+{
+  "id": "invoice_018",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2025/7120",
+    "date": "2025-02-06",
+    "vendor": "PT Autoparts Nusantara",
+    "line_items": [
+      {
+        "description": "Filter Oli",
+        "quantity": 4,
+        "unit_price": 2833000,
+        "amount": 11332000
+      },
+      {
+        "description": "Filter Udara",
+        "quantity": 3,
+        "unit_price": 163000,
+        "amount": 489000
+      },
+      {
+        "description": "Lampu LED H4",
+        "quantity": 3,
+        "unit_price": 781000,
+        "amount": 2343000
+      },
+      {
+        "description": "Filter Udara",
+        "quantity": 3,
+        "unit_price": 206000,
+        "amount": 618000
+      }
+    ],
+    "subtotal": 14782000,
+    "tax": 1626020,
+    "total": 16408020
+  }
+}

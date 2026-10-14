@@ -1,0 +1,12 @@
+{
+  "id": "ktp_024",
+  "doc_type": "ktp",
+  "injected_error": null,
+  "fields": {
+    "nik": "3374010710733818",
+    "name": "AGUS SETIAWAN",
+    "birth_date": "1973-10-07",
+    "address": "JL. KENANGA NO. 1",
+    "gender": "male"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "spk_001",
+  "doc_type": "spk",
+  "injected_error": null,
+  "fields": {
+    "spk_number": "SPK/2026/03/465",
+    "customer_name": "Andi Kusuma",
+    "model": "Brio",
+    "variant": "Satya",
+    "color": "Putih",
+    "price": 265000000,
+    "payment_method": "leasing"
+  }
+}

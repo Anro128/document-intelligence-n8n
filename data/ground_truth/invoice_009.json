@@ -1,0 +1,51 @@
+{
+  "id": "invoice_009",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2026/9356",
+    "date": "2026-05-27",
+    "vendor": "PT Sumber Otomotif Jaya",
+    "line_items": [
+      {
+        "description": "Busi Iridium",
+        "quantity": 2,
+        "unit_price": 2460000,
+        "amount": 4920000
+      },
+      {
+        "description": "Spooring Balancing",
+        "quantity": 1,
+        "unit_price": 340000,
+        "amount": 340000
+      },
+      {
+        "description": "Filter Udara",
+        "quantity": 1,
+        "unit_price": 987000,
+        "amount": 987000
+      },
+      {
+        "description": "Filter Udara",
+        "quantity": 1,
+        "unit_price": 1403000,
+        "amount": 1403000
+      },
+      {
+        "description": "Servis Berkala",
+        "quantity": 2,
+        "unit_price": 1190000,
+        "amount": 2380000
+      },
+      {
+        "description": "Filter Oli",
+        "quantity": 4,
+        "unit_price": 927000,
+        "amount": 3708000
+      }
+    ],
+    "subtotal": 13738000,
+    "tax": 1511180,
+    "total": 15249180
+  }
+}

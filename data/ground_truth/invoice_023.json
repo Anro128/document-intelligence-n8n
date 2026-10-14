@@ -1,0 +1,51 @@
+{
+  "id": "invoice_023",
+  "doc_type": "invoice",
+  "injected_error": null,
+  "fields": {
+    "invoice_number": "INV/2025/5239",
+    "date": "2025-10-31",
+    "vendor": "Bengkel Resmi Maju Bersama",
+    "line_items": [
+      {
+        "description": "Spooring Balancing",
+        "quantity": 4,
+        "unit_price": 701000,
+        "amount": 2804000
+      },
+      {
+        "description": "Aki 45Ah",
+        "quantity": 4,
+        "unit_price": 1893000,
+        "amount": 7572000
+      },
+      {
+        "description": "Aki 45Ah",
+        "quantity": 2,
+        "unit_price": 2661000,
+        "amount": 5322000
+      },
+      {
+        "description": "Busi Iridium",
+        "quantity": 4,
+        "unit_price": 2617000,
+        "amount": 10468000
+      },
+      {
+        "description": "Filter Udara",
+        "quantity": 3,
+        "unit_price": 1851000,
+        "amount": 5553000
+      },
+      {
+        "description": "Aki 45Ah",
+        "quantity": 3,
+        "unit_price": 1010000,
+        "amount": 3030000
+      }
+    ],
+    "subtotal": 34749000,
+    "tax": 3822390,
+    "total": 38571390
+  }
+}
