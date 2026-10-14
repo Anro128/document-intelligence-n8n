@@ -1,0 +1,436 @@
+{
+  "id": "docintel06",
+  "name": "06 Route and notify",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const doc = $input.first().json;\nconst json = (value) => JSON.stringify(value === undefined ? null : value);\nconst validation = doc.validation || { warnings: [], errors: [] };\n\ndoc.document_row = {\n  id: doc.id,\n  source: doc.source,\n  doc_type: doc.doc_type || '',\n  status: doc.status,\n  confidence: doc.confidence === undefined ? '' : doc.confidence,\n  created_at: doc.created_at,\n};\ndoc.extraction_row = {\n  id: `${doc.id}-x`,\n  document_id: doc.id,\n  data: json(doc.extraction),\n  warnings: json(validation.warnings),\n  errors: json(validation.errors),\n  model: doc.model || '',\n};\ndoc.log_rows = (doc.usage || []).map((u, i) => ({\n  id: `${doc.id}-${i}`,\n  document_id: doc.id,\n  step: u.step,\n  tokens_in: u.tokens_in,\n  tokens_out: u.tokens_out,\n  cost_usd: u.cost_usd,\n  latency_ms: u.latency_ms,\n}));\nreturn [{ json: doc }];\n"
+      },
+      "name": "Decide",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ ({valid: 0, needs_review: 1}[$json.status] ?? 2) }}"
+      },
+      "name": "Route status",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\nconst PRICING = JSON.parse($env.MODEL_PRICING || '{}');\nconst TELEGRAM_API = `https://api.telegram.org/bot${$env.TELEGRAM_BOT_TOKEN}`;\n\nconst telegram = (method, body) => http({ method: 'POST', url: `${TELEGRAM_API}/${method}`, body, json: true });\nconst say = (chatId, text, extra = {}) => telegram('sendMessage', { chat_id: chatId, text, ...extra });\n\nconst costOf = (model, tokensIn, tokensOut) => {\n  const [priceIn, priceOut] = PRICING[model] || [0, 0];\n  return Number(((tokensIn * priceIn + tokensOut * priceOut) / 1e6).toFixed(6));\n};\n\nasync function callClaude(model, system, mime, b64, schema, maxTokens) {\n  const media = mime === 'application/pdf' ? 'document' : 'image';\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.anthropic.com/v1/messages',\n    headers: { 'x-api-key': $env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      system,\n      tools: [{ name: 'record', description: 'Record the result', input_schema: schema }],\n      tool_choice: { type: 'tool', name: 'record' },\n      messages: [{\n        role: 'user',\n        content: [\n          { type: media, source: { type: 'base64', media_type: mime, data: b64 } },\n          { type: 'text', text: 'Process this document.' },\n        ],\n      }],\n    },\n    json: true,\n    timeout: 90000,\n  });\n  const block = (res.content || []).find((c) => c.type === 'tool_use');\n  if (!block) throw new Error('model returned no structured output');\n  return { data: block.input, tokensIn: res.usage.input_tokens, tokensOut: res.usage.output_tokens };\n}\n\nasync function callOpenAI(model, system, mime, b64, schema, maxTokens) {\n  const dataUrl = `data:${mime};base64,${b64}`;\n  const part = mime === 'application/pdf'\n    ? { type: 'file', file: { filename: 'document.pdf', file_data: dataUrl } }\n    : { type: 'image_url', image_url: { url: dataUrl } };\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.openai.com/v1/chat/completions',\n    headers: { Authorization: `Bearer ${$env.OPENAI_API_KEY}` },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      messages: [\n        { role: 'system', content: system },\n        { role: 'user', content: [part, { type: 'text', text: 'Process this document.' }] },\n      ],\n      response_format: { type: 'json_schema', json_schema: { name: 'record', schema } },\n    },\n    json: true,\n    timeout: 90000,\n  });\n  return {\n    data: JSON.parse(res.choices[0].message.content),\n    tokensIn: res.usage.prompt_tokens,\n    tokensOut: res.usage.completion_tokens,\n  };\n}\n\n// Tries the primary model twice, then the fallback model once\nasync function runLLM(step, system, mime, b64, schema, maxTokens) {\n  const models = [$env.PRIMARY_MODEL, $env.PRIMARY_MODEL, $env.FALLBACK_MODEL].filter(Boolean);\n  const usage = [];\n  let lastError = 'no model configured';\n  for (const model of models) {\n    const started = Date.now();\n    try {\n      const call = model.startsWith('claude') ? callClaude : callOpenAI;\n      const r = await call(model, system, mime, b64, schema, maxTokens);\n      usage.push({\n        step, model, tokens_in: r.tokensIn, tokens_out: r.tokensOut,\n        cost_usd: costOf(model, r.tokensIn, r.tokensOut), latency_ms: Date.now() - started,\n      });\n      return { data: r.data, model, usage };\n    } catch (e) {\n      lastError = e.message;\n      usage.push({ step, model, tokens_in: 0, tokens_out: 0, cost_usd: 0, latency_ms: Date.now() - started });\n    }\n  }\n  return { error: lastError, usage };\n}\n\nconst doc = $input.first().json;\nconst lines = Object.entries(doc.extraction)\n  .filter(([, v]) => typeof v !== 'object')\n  .map(([k, v]) => `${k}: ${v}`);\n\nawait say(doc.chat_id, `Document processed (${doc.doc_type}).\\n${lines.join('\\n')}`);\nreturn [{ json: doc }];\n"
+      },
+      "name": "Notify valid",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\nconst PRICING = JSON.parse($env.MODEL_PRICING || '{}');\nconst TELEGRAM_API = `https://api.telegram.org/bot${$env.TELEGRAM_BOT_TOKEN}`;\n\nconst telegram = (method, body) => http({ method: 'POST', url: `${TELEGRAM_API}/${method}`, body, json: true });\nconst say = (chatId, text, extra = {}) => telegram('sendMessage', { chat_id: chatId, text, ...extra });\n\nconst costOf = (model, tokensIn, tokensOut) => {\n  const [priceIn, priceOut] = PRICING[model] || [0, 0];\n  return Number(((tokensIn * priceIn + tokensOut * priceOut) / 1e6).toFixed(6));\n};\n\nasync function callClaude(model, system, mime, b64, schema, maxTokens) {\n  const media = mime === 'application/pdf' ? 'document' : 'image';\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.anthropic.com/v1/messages',\n    headers: { 'x-api-key': $env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      system,\n      tools: [{ name: 'record', description: 'Record the result', input_schema: schema }],\n      tool_choice: { type: 'tool', name: 'record' },\n      messages: [{\n        role: 'user',\n        content: [\n          { type: media, source: { type: 'base64', media_type: mime, data: b64 } },\n          { type: 'text', text: 'Process this document.' },\n        ],\n      }],\n    },\n    json: true,\n    timeout: 90000,\n  });\n  const block = (res.content || []).find((c) => c.type === 'tool_use');\n  if (!block) throw new Error('model returned no structured output');\n  return { data: block.input, tokensIn: res.usage.input_tokens, tokensOut: res.usage.output_tokens };\n}\n\nasync function callOpenAI(model, system, mime, b64, schema, maxTokens) {\n  const dataUrl = `data:${mime};base64,${b64}`;\n  const part = mime === 'application/pdf'\n    ? { type: 'file', file: { filename: 'document.pdf', file_data: dataUrl } }\n    : { type: 'image_url', image_url: { url: dataUrl } };\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.openai.com/v1/chat/completions',\n    headers: { Authorization: `Bearer ${$env.OPENAI_API_KEY}` },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      messages: [\n        { role: 'system', content: system },\n        { role: 'user', content: [part, { type: 'text', text: 'Process this document.' }] },\n      ],\n      response_format: { type: 'json_schema', json_schema: { name: 'record', schema } },\n    },\n    json: true,\n    timeout: 90000,\n  });\n  return {\n    data: JSON.parse(res.choices[0].message.content),\n    tokensIn: res.usage.prompt_tokens,\n    tokensOut: res.usage.completion_tokens,\n  };\n}\n\n// Tries the primary model twice, then the fallback model once\nasync function runLLM(step, system, mime, b64, schema, maxTokens) {\n  const models = [$env.PRIMARY_MODEL, $env.PRIMARY_MODEL, $env.FALLBACK_MODEL].filter(Boolean);\n  const usage = [];\n  let lastError = 'no model configured';\n  for (const model of models) {\n    const started = Date.now();\n    try {\n      const call = model.startsWith('claude') ? callClaude : callOpenAI;\n      const r = await call(model, system, mime, b64, schema, maxTokens);\n      usage.push({\n        step, model, tokens_in: r.tokensIn, tokens_out: r.tokensOut,\n        cost_usd: costOf(model, r.tokensIn, r.tokensOut), latency_ms: Date.now() - started,\n      });\n      return { data: r.data, model, usage };\n    } catch (e) {\n      lastError = e.message;\n      usage.push({ step, model, tokens_in: 0, tokens_out: 0, cost_usd: 0, latency_ms: Date.now() - started });\n    }\n  }\n  return { error: lastError, usage };\n}\n\nconst doc = $input.first().json;\nconst data = doc.extraction ? JSON.stringify(doc.extraction, null, 1).slice(0, 1500) : 'no extraction';\nconst text = `Needs review (${doc.doc_type || 'unknown'}, id ${doc.id.slice(0, 8)})\\n${doc.reason}\\n\\n${data}`;\n\nawait say(doc.chat_id, text, {\n  reply_markup: {\n    inline_keyboard: [[\n      { text: 'Approve', callback_data: `approve:${doc.id}` },\n      { text: 'Reject', callback_data: `reject:${doc.id}` },\n    ]],\n  },\n});\nreturn [{ json: doc }];\n"
+      },
+      "name": "Notify review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\nconst PRICING = JSON.parse($env.MODEL_PRICING || '{}');\nconst TELEGRAM_API = `https://api.telegram.org/bot${$env.TELEGRAM_BOT_TOKEN}`;\n\nconst telegram = (method, body) => http({ method: 'POST', url: `${TELEGRAM_API}/${method}`, body, json: true });\nconst say = (chatId, text, extra = {}) => telegram('sendMessage', { chat_id: chatId, text, ...extra });\n\nconst costOf = (model, tokensIn, tokensOut) => {\n  const [priceIn, priceOut] = PRICING[model] || [0, 0];\n  return Number(((tokensIn * priceIn + tokensOut * priceOut) / 1e6).toFixed(6));\n};\n\nasync function callClaude(model, system, mime, b64, schema, maxTokens) {\n  const media = mime === 'application/pdf' ? 'document' : 'image';\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.anthropic.com/v1/messages',\n    headers: { 'x-api-key': $env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      system,\n      tools: [{ name: 'record', description: 'Record the result', input_schema: schema }],\n      tool_choice: { type: 'tool', name: 'record' },\n      messages: [{\n        role: 'user',\n        content: [\n          { type: media, source: { type: 'base64', media_type: mime, data: b64 } },\n          { type: 'text', text: 'Process this document.' },\n        ],\n      }],\n    },\n    json: true,\n    timeout: 90000,\n  });\n  const block = (res.content || []).find((c) => c.type === 'tool_use');\n  if (!block) throw new Error('model returned no structured output');\n  return { data: block.input, tokensIn: res.usage.input_tokens, tokensOut: res.usage.output_tokens };\n}\n\nasync function callOpenAI(model, system, mime, b64, schema, maxTokens) {\n  const dataUrl = `data:${mime};base64,${b64}`;\n  const part = mime === 'application/pdf'\n    ? { type: 'file', file: { filename: 'document.pdf', file_data: dataUrl } }\n    : { type: 'image_url', image_url: { url: dataUrl } };\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.openai.com/v1/chat/completions',\n    headers: { Authorization: `Bearer ${$env.OPENAI_API_KEY}` },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      messages: [\n        { role: 'system', content: system },\n        { role: 'user', content: [part, { type: 'text', text: 'Process this document.' }] },\n      ],\n      response_format: { type: 'json_schema', json_schema: { name: 'record', schema } },\n    },\n    json: true,\n    timeout: 90000,\n  });\n  return {\n    data: JSON.parse(res.choices[0].message.content),\n    tokensIn: res.usage.prompt_tokens,\n    tokensOut: res.usage.completion_tokens,\n  };\n}\n\n// Tries the primary model twice, then the fallback model once\nasync function runLLM(step, system, mime, b64, schema, maxTokens) {\n  const models = [$env.PRIMARY_MODEL, $env.PRIMARY_MODEL, $env.FALLBACK_MODEL].filter(Boolean);\n  const usage = [];\n  let lastError = 'no model configured';\n  for (const model of models) {\n    const started = Date.now();\n    try {\n      const call = model.startsWith('claude') ? callClaude : callOpenAI;\n      const r = await call(model, system, mime, b64, schema, maxTokens);\n      usage.push({\n        step, model, tokens_in: r.tokensIn, tokens_out: r.tokensOut,\n        cost_usd: costOf(model, r.tokensIn, r.tokensOut), latency_ms: Date.now() - started,\n      });\n      return { data: r.data, model, usage };\n    } catch (e) {\n      lastError = e.message;\n      usage.push({ step, model, tokens_in: 0, tokens_out: 0, cost_usd: 0, latency_ms: Date.now() - started });\n    }\n  }\n  return { error: lastError, usage };\n}\n\nconst doc = $input.first().json;\nawait say(doc.chat_id, `Document could not be processed.\\nReason: ${doc.reason || 'unknown error'}`);\nreturn [{ json: doc }];\n"
+      },
+      "name": "Notify failed",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fs = require('fs');\nconst doc = $input.first().json;\nif (doc.file_path && fs.existsSync(doc.file_path)) fs.unlinkSync(doc.file_path);\nreturn [{ json: { id: doc.id, status: doc.status } }];\n"
+      },
+      "name": "Cleanup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "has-extraction",
+              "leftValue": "={{ !!$json.extraction }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Has extraction",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        520,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "extractions",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.extraction_row.id }}",
+            "document_id": "={{ $json.extraction_row.document_id }}",
+            "data": "={{ $json.extraction_row.data }}",
+            "warnings": "={{ $json.extraction_row.warnings }}",
+            "errors": "={{ $json.extraction_row.errors }}",
+            "model": "={{ $json.extraction_row.model }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "name": "Write extraction",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        780,
+        880
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "",
+          "name": "Google Service Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: $('Decide').first().json }];\n"
+      },
+      "name": "Restore decide",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.document_row.id }}",
+            "source": "={{ $json.document_row.source }}",
+            "doc_type": "={{ $json.document_row.doc_type }}",
+            "status": "={{ $json.document_row.status }}",
+            "confidence": "={{ $json.document_row.confidence }}",
+            "created_at": "={{ $json.document_row.created_at }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "name": "Write document",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1300,
+        880
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "",
+          "name": "Google Service Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const doc = $('Decide').first().json;\nreturn doc.log_rows.map((row) => ({ json: row }));\n"
+      },
+      "name": "Log rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "run_logs",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "document_id": "={{ $json.document_id }}",
+            "step": "={{ $json.step }}",
+            "tokens_in": "={{ $json.tokens_in }}",
+            "tokens_out": "={{ $json.tokens_out }}",
+            "cost_usd": "={{ $json.cost_usd }}",
+            "latency_ms": "={{ $json.latency_ms }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "name": "Write run logs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1820,
+        880
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "",
+          "name": "Google Service Account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Decide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decide": {
+      "main": [
+        [
+          {
+            "node": "Route status",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Has extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route status": {
+      "main": [
+        [
+          {
+            "node": "Notify valid",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify valid": {
+      "main": [
+        [
+          {
+            "node": "Cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify review": {
+      "main": [
+        [
+          {
+            "node": "Cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify failed": {
+      "main": [
+        [
+          {
+            "node": "Cleanup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has extraction": {
+      "main": [
+        [
+          {
+            "node": "Write extraction",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Restore decide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write extraction": {
+      "main": [
+        [
+          {
+            "node": "Restore decide",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore decide": {
+      "main": [
+        [
+          {
+            "node": "Write document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write document": {
+      "main": [
+        [
+          {
+            "node": "Log rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log rows": {
+      "main": [
+        [
+          {
+            "node": "Write run logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "docintel07"
+  },
+  "active": false
+}

@@ -1,0 +1,463 @@
+{
+  "id": "docintel01",
+  "name": "01 Intake",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "name": "Telegram webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "docintel-telegram"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body || {};\nlet kind = 'other';\nif (body.callback_query) kind = 'callback';\nelse if (body.message && (body.message.document || body.message.photo)) kind = 'file';\nreturn [{ json: { kind, body } }];\n"
+      },
+      "name": "Parse update",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "expression",
+        "numberOutputs": 3,
+        "output": "={{ ({file: 0, callback: 1}[$json.kind] ?? 2) }}"
+      },
+      "name": "Route update",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        520,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\nconst PRICING = JSON.parse($env.MODEL_PRICING || '{}');\nconst TELEGRAM_API = `https://api.telegram.org/bot${$env.TELEGRAM_BOT_TOKEN}`;\n\nconst telegram = (method, body) => http({ method: 'POST', url: `${TELEGRAM_API}/${method}`, body, json: true });\nconst say = (chatId, text, extra = {}) => telegram('sendMessage', { chat_id: chatId, text, ...extra });\n\nconst costOf = (model, tokensIn, tokensOut) => {\n  const [priceIn, priceOut] = PRICING[model] || [0, 0];\n  return Number(((tokensIn * priceIn + tokensOut * priceOut) / 1e6).toFixed(6));\n};\n\nasync function callClaude(model, system, mime, b64, schema, maxTokens) {\n  const media = mime === 'application/pdf' ? 'document' : 'image';\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.anthropic.com/v1/messages',\n    headers: { 'x-api-key': $env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      system,\n      tools: [{ name: 'record', description: 'Record the result', input_schema: schema }],\n      tool_choice: { type: 'tool', name: 'record' },\n      messages: [{\n        role: 'user',\n        content: [\n          { type: media, source: { type: 'base64', media_type: mime, data: b64 } },\n          { type: 'text', text: 'Process this document.' },\n        ],\n      }],\n    },\n    json: true,\n    timeout: 90000,\n  });\n  const block = (res.content || []).find((c) => c.type === 'tool_use');\n  if (!block) throw new Error('model returned no structured output');\n  return { data: block.input, tokensIn: res.usage.input_tokens, tokensOut: res.usage.output_tokens };\n}\n\nasync function callOpenAI(model, system, mime, b64, schema, maxTokens) {\n  const dataUrl = `data:${mime};base64,${b64}`;\n  const part = mime === 'application/pdf'\n    ? { type: 'file', file: { filename: 'document.pdf', file_data: dataUrl } }\n    : { type: 'image_url', image_url: { url: dataUrl } };\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.openai.com/v1/chat/completions',\n    headers: { Authorization: `Bearer ${$env.OPENAI_API_KEY}` },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      messages: [\n        { role: 'system', content: system },\n        { role: 'user', content: [part, { type: 'text', text: 'Process this document.' }] },\n      ],\n      response_format: { type: 'json_schema', json_schema: { name: 'record', schema } },\n    },\n    json: true,\n    timeout: 90000,\n  });\n  return {\n    data: JSON.parse(res.choices[0].message.content),\n    tokensIn: res.usage.prompt_tokens,\n    tokensOut: res.usage.completion_tokens,\n  };\n}\n\n// Tries the primary model twice, then the fallback model once\nasync function runLLM(step, system, mime, b64, schema, maxTokens) {\n  const models = [$env.PRIMARY_MODEL, $env.PRIMARY_MODEL, $env.FALLBACK_MODEL].filter(Boolean);\n  const usage = [];\n  let lastError = 'no model configured';\n  for (const model of models) {\n    const started = Date.now();\n    try {\n      const call = model.startsWith('claude') ? callClaude : callOpenAI;\n      const r = await call(model, system, mime, b64, schema, maxTokens);\n      usage.push({\n        step, model, tokens_in: r.tokensIn, tokens_out: r.tokensOut,\n        cost_usd: costOf(model, r.tokensIn, r.tokensOut), latency_ms: Date.now() - started,\n      });\n      return { data: r.data, model, usage };\n    } catch (e) {\n      lastError = e.message;\n      usage.push({ step, model, tokens_in: 0, tokens_out: 0, cost_usd: 0, latency_ms: Date.now() - started });\n    }\n  }\n  return { error: lastError, usage };\n}\n\nconst fs = require('fs');\nconst { randomUUID } = require('crypto');\n\nconst MAX_BYTES = 5 * 1024 * 1024;\nconst MIME_EXT = { 'application/pdf': 'pdf', 'image/jpeg': 'jpg', 'image/png': 'png' };\n\nconst message = $input.first().json.body.message;\nconst chatId = message.chat.id;\nconst file = message.document\n  || (message.photo && { ...message.photo[message.photo.length - 1], mime_type: 'image/jpeg' });\n\nif (!file) {\n  await say(chatId, 'Send a PDF, JPG or PNG document to process.');\n  return [];\n}\nconst mime = file.mime_type;\nif (!MIME_EXT[mime]) {\n  await say(chatId, 'Unsupported file type. Send a PDF, JPG or PNG.');\n  return [];\n}\nif (file.file_size > MAX_BYTES) {\n  await say(chatId, 'File is larger than 5MB. Send a smaller file.');\n  return [];\n}\n\nconst info = await telegram('getFile', { file_id: file.file_id });\nconst bytes = await http({\n  method: 'GET',\n  url: `https://api.telegram.org/file/bot${$env.TELEGRAM_BOT_TOKEN}/${info.result.file_path}`,\n  encoding: 'arraybuffer',\n  json: false,\n});\n\nconst id = randomUUID();\nconst filePath = `/files/${id}.${MIME_EXT[mime]}`;\nfs.writeFileSync(filePath, Buffer.from(bytes));\nawait say(chatId, 'Document received, processing...');\n\nreturn [{\n  json: {\n    id,\n    source: 'telegram',\n    chat_id: chatId,\n    mime,\n    file_path: filePath,\n    status: 'received',\n    usage: [],\n    created_at: new Date().toISOString(),\n  },\n}];\n"
+      },
+      "name": "Check and store",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "source": "={{ $json.source }}",
+            "doc_type": "",
+            "status": "={{ $json.status }}",
+            "confidence": "",
+            "created_at": "={{ $json.created_at }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "name": "Log received",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1040,
+        0
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "",
+          "name": "Google Service Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: $('Check and store').first().json }];\n"
+      },
+      "name": "Restore intake",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\nconst PRICING = JSON.parse($env.MODEL_PRICING || '{}');\nconst TELEGRAM_API = `https://api.telegram.org/bot${$env.TELEGRAM_BOT_TOKEN}`;\n\nconst telegram = (method, body) => http({ method: 'POST', url: `${TELEGRAM_API}/${method}`, body, json: true });\nconst say = (chatId, text, extra = {}) => telegram('sendMessage', { chat_id: chatId, text, ...extra });\n\nconst costOf = (model, tokensIn, tokensOut) => {\n  const [priceIn, priceOut] = PRICING[model] || [0, 0];\n  return Number(((tokensIn * priceIn + tokensOut * priceOut) / 1e6).toFixed(6));\n};\n\nasync function callClaude(model, system, mime, b64, schema, maxTokens) {\n  const media = mime === 'application/pdf' ? 'document' : 'image';\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.anthropic.com/v1/messages',\n    headers: { 'x-api-key': $env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      system,\n      tools: [{ name: 'record', description: 'Record the result', input_schema: schema }],\n      tool_choice: { type: 'tool', name: 'record' },\n      messages: [{\n        role: 'user',\n        content: [\n          { type: media, source: { type: 'base64', media_type: mime, data: b64 } },\n          { type: 'text', text: 'Process this document.' },\n        ],\n      }],\n    },\n    json: true,\n    timeout: 90000,\n  });\n  const block = (res.content || []).find((c) => c.type === 'tool_use');\n  if (!block) throw new Error('model returned no structured output');\n  return { data: block.input, tokensIn: res.usage.input_tokens, tokensOut: res.usage.output_tokens };\n}\n\nasync function callOpenAI(model, system, mime, b64, schema, maxTokens) {\n  const dataUrl = `data:${mime};base64,${b64}`;\n  const part = mime === 'application/pdf'\n    ? { type: 'file', file: { filename: 'document.pdf', file_data: dataUrl } }\n    : { type: 'image_url', image_url: { url: dataUrl } };\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.openai.com/v1/chat/completions',\n    headers: { Authorization: `Bearer ${$env.OPENAI_API_KEY}` },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      messages: [\n        { role: 'system', content: system },\n        { role: 'user', content: [part, { type: 'text', text: 'Process this document.' }] },\n      ],\n      response_format: { type: 'json_schema', json_schema: { name: 'record', schema } },\n    },\n    json: true,\n    timeout: 90000,\n  });\n  return {\n    data: JSON.parse(res.choices[0].message.content),\n    tokensIn: res.usage.prompt_tokens,\n    tokensOut: res.usage.completion_tokens,\n  };\n}\n\n// Tries the primary model twice, then the fallback model once\nasync function runLLM(step, system, mime, b64, schema, maxTokens) {\n  const models = [$env.PRIMARY_MODEL, $env.PRIMARY_MODEL, $env.FALLBACK_MODEL].filter(Boolean);\n  const usage = [];\n  let lastError = 'no model configured';\n  for (const model of models) {\n    const started = Date.now();\n    try {\n      const call = model.startsWith('claude') ? callClaude : callOpenAI;\n      const r = await call(model, system, mime, b64, schema, maxTokens);\n      usage.push({\n        step, model, tokens_in: r.tokensIn, tokens_out: r.tokensOut,\n        cost_usd: costOf(model, r.tokensIn, r.tokensOut), latency_ms: Date.now() - started,\n      });\n      return { data: r.data, model, usage };\n    } catch (e) {\n      lastError = e.message;\n      usage.push({ step, model, tokens_in: 0, tokens_out: 0, cost_usd: 0, latency_ms: Date.now() - started });\n    }\n  }\n  return { error: lastError, usage };\n}\n\nconst doc = $input.first().json;\nconst store = $getWorkflowStaticData('global');\nconst today = new Date().toISOString().slice(0, 10);\nconst spent = store.spend && store.spend.day === today ? store.spend.usd : 0;\n\nif (spent >= Number($env.DAILY_COST_CAP_USD || 2)) {\n  await say(doc.chat_id, 'Daily processing limit reached. Try again tomorrow.');\n  return [];\n}\nreturn [{ json: doc }];\n"
+      },
+      "name": "Cost gate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": "docintel02",
+        "options": {}
+      },
+      "name": "Preprocess",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        1820,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": "docintel03",
+        "options": {}
+      },
+      "name": "Classify",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        2080,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": "docintel04",
+        "options": {}
+      },
+      "name": "Extract",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        2340,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": "docintel05",
+        "options": {}
+      },
+      "name": "Validate",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        2600,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const doc = $input.first().json;\nconst store = $getWorkflowStaticData('global');\nconst today = new Date().toISOString().slice(0, 10);\nconst added = (doc.usage || []).reduce((sum, u) => sum + u.cost_usd, 0);\n\nconst base = store.spend && store.spend.day === today ? store.spend.usd : 0;\nstore.spend = { day: today, usd: base + added };\nreturn [{ json: doc }];\n"
+      },
+      "name": "Record spend",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2860,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "source": "database",
+        "workflowId": "docintel06",
+        "options": {}
+      },
+      "name": "Route and notify",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        3120,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const query = $input.first().json.body.callback_query;\nconst [decision, id] = String(query.data || '').split(':');\nconst valid = ['approve', 'reject'].includes(decision) && id;\nif (!valid) return [];\n\nreturn [{\n  json: {\n    id,\n    decision,\n    status: decision === 'approve' ? 'approved' : 'rejected',\n    chat_id: query.message.chat.id,\n    message_id: query.message.message_id,\n    callback_id: query.id,\n  },\n}];\n"
+      },
+      "name": "Parse callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "status": "={{ $json.status }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "name": "Update decision",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1040,
+        440
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "",
+          "name": "Google Service Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\nconst PRICING = JSON.parse($env.MODEL_PRICING || '{}');\nconst TELEGRAM_API = `https://api.telegram.org/bot${$env.TELEGRAM_BOT_TOKEN}`;\n\nconst telegram = (method, body) => http({ method: 'POST', url: `${TELEGRAM_API}/${method}`, body, json: true });\nconst say = (chatId, text, extra = {}) => telegram('sendMessage', { chat_id: chatId, text, ...extra });\n\nconst costOf = (model, tokensIn, tokensOut) => {\n  const [priceIn, priceOut] = PRICING[model] || [0, 0];\n  return Number(((tokensIn * priceIn + tokensOut * priceOut) / 1e6).toFixed(6));\n};\n\nasync function callClaude(model, system, mime, b64, schema, maxTokens) {\n  const media = mime === 'application/pdf' ? 'document' : 'image';\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.anthropic.com/v1/messages',\n    headers: { 'x-api-key': $env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      system,\n      tools: [{ name: 'record', description: 'Record the result', input_schema: schema }],\n      tool_choice: { type: 'tool', name: 'record' },\n      messages: [{\n        role: 'user',\n        content: [\n          { type: media, source: { type: 'base64', media_type: mime, data: b64 } },\n          { type: 'text', text: 'Process this document.' },\n        ],\n      }],\n    },\n    json: true,\n    timeout: 90000,\n  });\n  const block = (res.content || []).find((c) => c.type === 'tool_use');\n  if (!block) throw new Error('model returned no structured output');\n  return { data: block.input, tokensIn: res.usage.input_tokens, tokensOut: res.usage.output_tokens };\n}\n\nasync function callOpenAI(model, system, mime, b64, schema, maxTokens) {\n  const dataUrl = `data:${mime};base64,${b64}`;\n  const part = mime === 'application/pdf'\n    ? { type: 'file', file: { filename: 'document.pdf', file_data: dataUrl } }\n    : { type: 'image_url', image_url: { url: dataUrl } };\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.openai.com/v1/chat/completions',\n    headers: { Authorization: `Bearer ${$env.OPENAI_API_KEY}` },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      messages: [\n        { role: 'system', content: system },\n        { role: 'user', content: [part, { type: 'text', text: 'Process this document.' }] },\n      ],\n      response_format: { type: 'json_schema', json_schema: { name: 'record', schema } },\n    },\n    json: true,\n    timeout: 90000,\n  });\n  return {\n    data: JSON.parse(res.choices[0].message.content),\n    tokensIn: res.usage.prompt_tokens,\n    tokensOut: res.usage.completion_tokens,\n  };\n}\n\n// Tries the primary model twice, then the fallback model once\nasync function runLLM(step, system, mime, b64, schema, maxTokens) {\n  const models = [$env.PRIMARY_MODEL, $env.PRIMARY_MODEL, $env.FALLBACK_MODEL].filter(Boolean);\n  const usage = [];\n  let lastError = 'no model configured';\n  for (const model of models) {\n    const started = Date.now();\n    try {\n      const call = model.startsWith('claude') ? callClaude : callOpenAI;\n      const r = await call(model, system, mime, b64, schema, maxTokens);\n      usage.push({\n        step, model, tokens_in: r.tokensIn, tokens_out: r.tokensOut,\n        cost_usd: costOf(model, r.tokensIn, r.tokensOut), latency_ms: Date.now() - started,\n      });\n      return { data: r.data, model, usage };\n    } catch (e) {\n      lastError = e.message;\n      usage.push({ step, model, tokens_in: 0, tokens_out: 0, cost_usd: 0, latency_ms: Date.now() - started });\n    }\n  }\n  return { error: lastError, usage };\n}\n\nconst cb = $('Parse callback').first().json;\nawait telegram('answerCallbackQuery', { callback_query_id: cb.callback_id, text: `Marked as ${cb.status}` });\nawait telegram('editMessageReplyMarkup', {\n  chat_id: cb.chat_id,\n  message_id: cb.message_id,\n  reply_markup: { inline_keyboard: [] },\n});\nawait say(cb.chat_id, `Document ${cb.id.slice(0, 8)} ${cb.status}.`);\nreturn [{ json: cb }];\n"
+      },
+      "name": "Confirm callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1300,
+        440
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\nconst PRICING = JSON.parse($env.MODEL_PRICING || '{}');\nconst TELEGRAM_API = `https://api.telegram.org/bot${$env.TELEGRAM_BOT_TOKEN}`;\n\nconst telegram = (method, body) => http({ method: 'POST', url: `${TELEGRAM_API}/${method}`, body, json: true });\nconst say = (chatId, text, extra = {}) => telegram('sendMessage', { chat_id: chatId, text, ...extra });\n\nconst costOf = (model, tokensIn, tokensOut) => {\n  const [priceIn, priceOut] = PRICING[model] || [0, 0];\n  return Number(((tokensIn * priceIn + tokensOut * priceOut) / 1e6).toFixed(6));\n};\n\nasync function callClaude(model, system, mime, b64, schema, maxTokens) {\n  const media = mime === 'application/pdf' ? 'document' : 'image';\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.anthropic.com/v1/messages',\n    headers: { 'x-api-key': $env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      system,\n      tools: [{ name: 'record', description: 'Record the result', input_schema: schema }],\n      tool_choice: { type: 'tool', name: 'record' },\n      messages: [{\n        role: 'user',\n        content: [\n          { type: media, source: { type: 'base64', media_type: mime, data: b64 } },\n          { type: 'text', text: 'Process this document.' },\n        ],\n      }],\n    },\n    json: true,\n    timeout: 90000,\n  });\n  const block = (res.content || []).find((c) => c.type === 'tool_use');\n  if (!block) throw new Error('model returned no structured output');\n  return { data: block.input, tokensIn: res.usage.input_tokens, tokensOut: res.usage.output_tokens };\n}\n\nasync function callOpenAI(model, system, mime, b64, schema, maxTokens) {\n  const dataUrl = `data:${mime};base64,${b64}`;\n  const part = mime === 'application/pdf'\n    ? { type: 'file', file: { filename: 'document.pdf', file_data: dataUrl } }\n    : { type: 'image_url', image_url: { url: dataUrl } };\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.openai.com/v1/chat/completions',\n    headers: { Authorization: `Bearer ${$env.OPENAI_API_KEY}` },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      messages: [\n        { role: 'system', content: system },\n        { role: 'user', content: [part, { type: 'text', text: 'Process this document.' }] },\n      ],\n      response_format: { type: 'json_schema', json_schema: { name: 'record', schema } },\n    },\n    json: true,\n    timeout: 90000,\n  });\n  return {\n    data: JSON.parse(res.choices[0].message.content),\n    tokensIn: res.usage.prompt_tokens,\n    tokensOut: res.usage.completion_tokens,\n  };\n}\n\n// Tries the primary model twice, then the fallback model once\nasync function runLLM(step, system, mime, b64, schema, maxTokens) {\n  const models = [$env.PRIMARY_MODEL, $env.PRIMARY_MODEL, $env.FALLBACK_MODEL].filter(Boolean);\n  const usage = [];\n  let lastError = 'no model configured';\n  for (const model of models) {\n    const started = Date.now();\n    try {\n      const call = model.startsWith('claude') ? callClaude : callOpenAI;\n      const r = await call(model, system, mime, b64, schema, maxTokens);\n      usage.push({\n        step, model, tokens_in: r.tokensIn, tokens_out: r.tokensOut,\n        cost_usd: costOf(model, r.tokensIn, r.tokensOut), latency_ms: Date.now() - started,\n      });\n      return { data: r.data, model, usage };\n    } catch (e) {\n      lastError = e.message;\n      usage.push({ step, model, tokens_in: 0, tokens_out: 0, cost_usd: 0, latency_ms: Date.now() - started });\n    }\n  }\n  return { error: lastError, usage };\n}\n\nconst message = $input.first().json.body.message;\nif (message && message.chat && message.chat.type === 'private') {\n  await say(message.chat.id, 'Send an invoice, KTP or SPK as PDF, JPG or PNG (max 5MB, 10 pages).');\n}\nreturn [];\n"
+      },
+      "name": "Help reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        880
+      ]
+    }
+  ],
+  "connections": {
+    "Telegram webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse update": {
+      "main": [
+        [
+          {
+            "node": "Route update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route update": {
+      "main": [
+        [
+          {
+            "node": "Check and store",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse callback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Help reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check and store": {
+      "main": [
+        [
+          {
+            "node": "Log received",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log received": {
+      "main": [
+        [
+          {
+            "node": "Restore intake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Restore intake": {
+      "main": [
+        [
+          {
+            "node": "Cost gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cost gate": {
+      "main": [
+        [
+          {
+            "node": "Preprocess",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preprocess": {
+      "main": [
+        [
+          {
+            "node": "Classify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify": {
+      "main": [
+        [
+          {
+            "node": "Extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract": {
+      "main": [
+        [
+          {
+            "node": "Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate": {
+      "main": [
+        [
+          {
+            "node": "Record spend",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Record spend": {
+      "main": [
+        [
+          {
+            "node": "Route and notify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse callback": {
+      "main": [
+        [
+          {
+            "node": "Update decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update decision": {
+      "main": [
+        [
+          {
+            "node": "Confirm callback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "docintel07"
+  },
+  "active": false
+}

@@ -1,0 +1,139 @@
+{
+  "id": "docintel08",
+  "name": "08 Weekly report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "name": "Weekly",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "name": "Read documents",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        260,
+        0
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "",
+          "name": "Google Service Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $env.SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "run_logs",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "name": "Read run logs",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        520,
+        0
+      ],
+      "credentials": {
+        "googleApi": {
+          "id": "",
+          "name": "Google Service Account"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const http = (options) => this.helpers.httpRequest(options);\nconst PRICING = JSON.parse($env.MODEL_PRICING || '{}');\nconst TELEGRAM_API = `https://api.telegram.org/bot${$env.TELEGRAM_BOT_TOKEN}`;\n\nconst telegram = (method, body) => http({ method: 'POST', url: `${TELEGRAM_API}/${method}`, body, json: true });\nconst say = (chatId, text, extra = {}) => telegram('sendMessage', { chat_id: chatId, text, ...extra });\n\nconst costOf = (model, tokensIn, tokensOut) => {\n  const [priceIn, priceOut] = PRICING[model] || [0, 0];\n  return Number(((tokensIn * priceIn + tokensOut * priceOut) / 1e6).toFixed(6));\n};\n\nasync function callClaude(model, system, mime, b64, schema, maxTokens) {\n  const media = mime === 'application/pdf' ? 'document' : 'image';\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.anthropic.com/v1/messages',\n    headers: { 'x-api-key': $env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      system,\n      tools: [{ name: 'record', description: 'Record the result', input_schema: schema }],\n      tool_choice: { type: 'tool', name: 'record' },\n      messages: [{\n        role: 'user',\n        content: [\n          { type: media, source: { type: 'base64', media_type: mime, data: b64 } },\n          { type: 'text', text: 'Process this document.' },\n        ],\n      }],\n    },\n    json: true,\n    timeout: 90000,\n  });\n  const block = (res.content || []).find((c) => c.type === 'tool_use');\n  if (!block) throw new Error('model returned no structured output');\n  return { data: block.input, tokensIn: res.usage.input_tokens, tokensOut: res.usage.output_tokens };\n}\n\nasync function callOpenAI(model, system, mime, b64, schema, maxTokens) {\n  const dataUrl = `data:${mime};base64,${b64}`;\n  const part = mime === 'application/pdf'\n    ? { type: 'file', file: { filename: 'document.pdf', file_data: dataUrl } }\n    : { type: 'image_url', image_url: { url: dataUrl } };\n  const res = await http({\n    method: 'POST',\n    url: 'https://api.openai.com/v1/chat/completions',\n    headers: { Authorization: `Bearer ${$env.OPENAI_API_KEY}` },\n    body: {\n      model,\n      max_tokens: maxTokens,\n      messages: [\n        { role: 'system', content: system },\n        { role: 'user', content: [part, { type: 'text', text: 'Process this document.' }] },\n      ],\n      response_format: { type: 'json_schema', json_schema: { name: 'record', schema } },\n    },\n    json: true,\n    timeout: 90000,\n  });\n  return {\n    data: JSON.parse(res.choices[0].message.content),\n    tokensIn: res.usage.prompt_tokens,\n    tokensOut: res.usage.completion_tokens,\n  };\n}\n\n// Tries the primary model twice, then the fallback model once\nasync function runLLM(step, system, mime, b64, schema, maxTokens) {\n  const models = [$env.PRIMARY_MODEL, $env.PRIMARY_MODEL, $env.FALLBACK_MODEL].filter(Boolean);\n  const usage = [];\n  let lastError = 'no model configured';\n  for (const model of models) {\n    const started = Date.now();\n    try {\n      const call = model.startsWith('claude') ? callClaude : callOpenAI;\n      const r = await call(model, system, mime, b64, schema, maxTokens);\n      usage.push({\n        step, model, tokens_in: r.tokensIn, tokens_out: r.tokensOut,\n        cost_usd: costOf(model, r.tokensIn, r.tokensOut), latency_ms: Date.now() - started,\n      });\n      return { data: r.data, model, usage };\n    } catch (e) {\n      lastError = e.message;\n      usage.push({ step, model, tokens_in: 0, tokens_out: 0, cost_usd: 0, latency_ms: Date.now() - started });\n    }\n  }\n  return { error: lastError, usage };\n}\n\nconst since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();\nconst docs = $('Read documents').all().map((i) => i.json).filter((d) => String(d.created_at) >= since);\nconst logs = $('Read run logs').all().map((i) => i.json);\nconst recentIds = new Set(docs.map((d) => d.id));\nconst mine = logs.filter((l) => recentIds.has(l.document_id));\n\nconst count = (status) => docs.filter((d) => d.status === status).length;\nconst cost = mine.reduce((s, l) => s + Number(l.cost_usd || 0), 0);\nconst latencies = mine.map((l) => Number(l.latency_ms || 0)).sort((a, b) => a - b);\nconst median = latencies.length ? latencies[Math.floor(latencies.length / 2)] : 0;\nconst pct = (n) => (docs.length ? `${Math.round((100 * n) / docs.length)}%` : '0%');\n\nconst text = [\n  'Weekly document report',\n  `Documents: ${docs.length}`,\n  `Valid: ${count('valid') + count('approved')} (${pct(count('valid') + count('approved'))})`,\n  `Needs review / rejected: ${count('needs_review') + count('rejected')} (${pct(count('needs_review') + count('rejected'))})`,\n  `Failed: ${count('failed')} (${pct(count('failed'))})`,\n  `Cost: $${cost.toFixed(4)}`,\n  `Median step latency: ${median} ms`,\n].join('\\n');\n\nawait say($env.TELEGRAM_ADMIN_CHAT_ID, text);\nreturn [{ json: { text } }];\n"
+      },
+      "name": "Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        780,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Weekly": {
+      "main": [
+        [
+          {
+            "node": "Read documents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read documents": {
+      "main": [
+        [
+          {
+            "node": "Read run logs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read run logs": {
+      "main": [
+        [
+          {
+            "node": "Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "errorWorkflow": "docintel07"
+  },
+  "active": false
+}
