@@ -65,8 +65,9 @@ Copy the JSON files into `infra/files/` first or import them through the n8n UI.
 ## Design notes
 
 - Code nodes call the LLM and Telegram APIs through `this.helpers.httpRequest`. Retry, fallback and cost logic live in one shared helper (`workflows/code/lib.js`) instead of many HTTP nodes.
-- PDFs are sent to Claude as native document blocks, so there is no PDF-to-image step. Pages are counted in preprocessing and limited to 10.
-- Model attempts per call: primary, primary again, then fallback. Failed attempts are logged too.
+- The default model is DeepSeek's vision model (`PRIMARY_MODEL`), called through its OpenAI-compatible API with JSON mode; the schema is placed in the prompt and enforced by validation. Claude and OpenAI models also work by setting `PRIMARY_MODEL` or `FALLBACK_MODEL`.
+- DeepSeek accepts images only. A PDF fails with a clear reason unless a Claude or OpenAI model is set as `FALLBACK_MODEL`, which receives PDFs natively. Pages are counted in preprocessing and limited to 10.
+- Model attempts per call: primary, primary again, then fallback if one is set. Failed attempts are logged too.
 - Documents are processed one at a time and the stored file is deleted after notification.
 - A daily cost cap (`DAILY_COST_CAP_USD`) rejects new documents once reached.
 - Statuses: `received`, `extracted`, `valid`, `needs_review`, `failed`, plus `approved` and `rejected` after human review.

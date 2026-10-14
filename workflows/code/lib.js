@@ -38,24 +38,12 @@ async function callClaude(model, system, mime, b64, schema, maxTokens) {
   return { data: block.input, tokensIn: res.usage.input_tokens, tokensOut: res.usage.output_tokens };
 }
 
-async function callOpenAI(model, system, mime, b64, schema, maxTokens) {
-  const dataUrl = `data:${mime};base64,${b64}`;
-  const part = mime === 'application/pdf'
-    ? { type: 'file', file: { filename: 'document.pdf', file_data: dataUrl } }
-    : { type: 'image_url', image_url: { url: dataUrl } };
+async function chatCompletion(url, key, body) {
   const res = await http({
     method: 'POST',
-    url: 'https://api.openai.com/v1/chat/completions',
-    headers: { Authorization: `Bearer ${$env.OPENAI_API_KEY}` },
-    body: {
-      model,
-      max_tokens: maxTokens,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: [part, { type: 'text', text: 'Process this document.' }] },
-      ],
-      response_format: { type: 'json_schema', json_schema: { name: 'record', schema } },
-    },
+    url,
+    headers: { Authorization: `Bearer ${key}` },
+    body,
     json: true,
     timeout: 90000,
   });
@@ -66,6 +54,45 @@ async function callOpenAI(model, system, mime, b64, schema, maxTokens) {
   };
 }
 
+async function callOpenAI(model, system, mime, b64, schema, maxTokens) {
+  const dataUrl = `data:${mime};base64,${b64}`;
+  const part = mime === 'application/pdf'
+    ? { type: 'file', file: { filename: 'document.pdf', file_data: dataUrl } }
+    : { type: 'image_url', image_url: { url: dataUrl } };
+  return chatCompletion('https://api.openai.com/v1/chat/completions', $env.OPENAI_API_KEY, {
+    model,
+    max_tokens: maxTokens,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: [part, { type: 'text', text: 'Process this document.' }] },
+    ],
+    response_format: { type: 'json_schema', json_schema: { name: 'record', schema } },
+  });
+}
+
+// DeepSeek only offers JSON mode, so the schema goes into the prompt and validation enforces it
+async function callDeepSeek(model, system, mime, b64, schema, maxTokens) {
+  if (mime === 'application/pdf') throw new Error('DeepSeek does not accept PDF input');
+  const instruction = `${system}\n\nRespond with a single JSON object that matches this JSON schema:\n${JSON.stringify(schema)}`;
+  return chatCompletion('https://api.deepseek.com/chat/completions', $env.DEEPSEEK_API_KEY, {
+    model,
+    max_tokens: maxTokens,
+    messages: [
+      { role: 'system', content: instruction },
+      {
+        role: 'user',
+        content: [
+          { type: 'image_url', image_url: { url: `data:${mime};base64,${b64}` } },
+          { type: 'text', text: 'Process this document.' },
+        ],
+      },
+    ],
+    response_format: { type: 'json_object' },
+  });
+}
+
+const providerFor = (model) => (model.startsWith('claude') ? callClaude : model.startsWith('deepseek') ? callDeepSeek : callOpenAI);
+
 // Tries the primary model twice, then the fallback model once
 async function runLLM(step, system, mime, b64, schema, maxTokens) {
   const models = [$env.PRIMARY_MODEL, $env.PRIMARY_MODEL, $env.FALLBACK_MODEL].filter(Boolean);
@@ -74,8 +101,7 @@ async function runLLM(step, system, mime, b64, schema, maxTokens) {
   for (const model of models) {
     const started = Date.now();
     try {
-      const call = model.startsWith('claude') ? callClaude : callOpenAI;
-      const r = await call(model, system, mime, b64, schema, maxTokens);
+      const r = await providerFor(model)(model, system, mime, b64, schema, maxTokens);
       usage.push({
         step, model, tokens_in: r.tokensIn, tokens_out: r.tokensOut,
         cost_usd: costOf(model, r.tokensIn, r.tokensOut), latency_ms: Date.now() - started,

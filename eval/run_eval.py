@@ -16,7 +16,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 RAW = ROOT / "eval" / "raw"
 DOC_TYPES = ["invoice", "ktp", "spk"]
-DEFAULT_PRICING = {"claude-sonnet-5-5": [3, 15], "gpt-4o-mini": [0.15, 0.6]}
+DEFAULT_PRICING = {"deepseek-v4-flash-vision-exp": [0.44, 1.32], "claude-sonnet-5-5": [3, 15], "gpt-4o-mini": [0.15, 0.6]}
 PRICING = {**DEFAULT_PRICING, **json.loads(os.environ.get("MODEL_PRICING", "{}"))}
 CLASSIFY_SCHEMA = {
     "type": "object",
@@ -98,9 +98,38 @@ def call_openai(model, system, b64, schema, max_tokens):
     return json.loads(body["choices"][0]["message"]["content"]), body["usage"]["prompt_tokens"], body["usage"]["completion_tokens"]
 
 
+def call_deepseek(model, system, b64, schema, max_tokens):
+    instruction = f"{system}\n\nRespond with a single JSON object that matches this JSON schema:\n{json.dumps(schema)}"
+    res = requests.post(
+        "https://api.deepseek.com/chat/completions",
+        headers={"Authorization": f"Bearer {os.environ['DEEPSEEK_API_KEY']}"},
+        json={
+            "model": model, "max_tokens": max_tokens,
+            "messages": [
+                {"role": "system", "content": instruction},
+                {"role": "user", "content": [
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{b64}"}},
+                    {"type": "text", "text": "Process this document."},
+                ]},
+            ],
+            "response_format": {"type": "json_object"},
+        },
+        timeout=90,
+    )
+    res.raise_for_status()
+    body = res.json()
+    return json.loads(body["choices"][0]["message"]["content"]), body["usage"]["prompt_tokens"], body["usage"]["completion_tokens"]
+
+
+def provider_for(model):
+    if model.startswith("claude"):
+        return call_claude
+    return call_deepseek if model.startswith("deepseek") else call_openai
+
+
 def call_model(model, system, b64, schema, max_tokens):
     """One retry on failure, no fallback model so each model is measured on its own."""
-    call = call_claude if model.startswith("claude") else call_openai
+    call = provider_for(model)
     last = None
     for _ in range(2):
         started = time.time()
@@ -279,7 +308,7 @@ def write_report():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--experiment", help="name of the run, used as the raw result filename")
-    parser.add_argument("--model", default=os.environ.get("PRIMARY_MODEL", "claude-sonnet-5-5"))
+    parser.add_argument("--model", default=os.environ.get("PRIMARY_MODEL", "deepseek-v4-flash-vision-exp"))
     parser.add_argument("--prompts", choices=["v1", "v2"], default="v1")
     parser.add_argument("--max-width", type=int, default=1600)
     parser.add_argument("--limit", type=int, default=0, help="documents per type, 0 for all")

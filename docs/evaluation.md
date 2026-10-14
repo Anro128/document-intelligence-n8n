@@ -35,14 +35,14 @@ python eval/generate_docs.py
 python eval/run_eval.py --report
 
 # LLM experiments, results land in eval/raw/ and eval/results.md
+export DEEPSEEK_API_KEY=...
+python eval/run_eval.py --experiment prompt-v1 --model deepseek-v4-flash-vision-exp --prompts v1
+python eval/run_eval.py --experiment prompt-v2 --model deepseek-v4-flash-vision-exp --prompts v2
+
 export ANTHROPIC_API_KEY=...
-python eval/run_eval.py --experiment prompt-v1 --model claude-sonnet-5-5 --prompts v1
-python eval/run_eval.py --experiment prompt-v2 --model claude-sonnet-5-5 --prompts v2
+python eval/run_eval.py --experiment claude --model claude-sonnet-5-5 --prompts v2
 
-export OPENAI_API_KEY=...
-python eval/run_eval.py --experiment fallback --model gpt-4o-mini --prompts v2
-
-python eval/run_eval.py --experiment width-800 --model claude-sonnet-5-5 --prompts v2 --max-width 800
+python eval/run_eval.py --experiment width-800 --model deepseek-v4-flash-vision-exp --prompts v2 --max-width 800
 ```
 
 Use `--limit 5` for a cheap smoke run (5 documents per type).

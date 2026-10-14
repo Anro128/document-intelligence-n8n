@@ -68,6 +68,28 @@ const baseDoc = (file) => ({ id: 'x', status: 'received', mime: 'image/jpeg', fi
   });
   assert.strictEqual(doc.status, 'failed');
 
+  let seen;
+  doc = await run(classify, {
+    doc: baseDoc('ktp_001.jpg'),
+    env: { PRIMARY_MODEL: 'deepseek-test', FALLBACK_MODEL: '', DEEPSEEK_API_KEY: 'k' },
+    http: async (opts) => {
+      seen = opts;
+      return { choices: [{ message: { content: '{"type":"invoice","confidence":0.8}' } }], usage: { prompt_tokens: 300, completion_tokens: 20 } };
+    },
+  });
+  assert.strictEqual(seen.url, 'https://api.deepseek.com/chat/completions');
+  assert.deepStrictEqual(seen.body.response_format, { type: 'json_object' });
+  assert.ok(seen.body.messages[0].content.includes('JSON schema'));
+  assert.strictEqual(doc.doc_type, 'invoice');
+
+  doc = await run(classify, {
+    doc: { ...baseDoc('ktp_001.jpg'), mime: 'application/pdf' },
+    env: { PRIMARY_MODEL: 'deepseek-test', FALLBACK_MODEL: '' },
+    http: async () => ({}),
+  });
+  assert.strictEqual(doc.status, 'failed');
+  assert.ok(doc.reason.includes('PDF'));
+
   const good = truth('invoice_001.json');
   doc = await run(extract, {
     doc: { ...baseDoc('invoice_001.jpg'), doc_type: 'invoice' },
