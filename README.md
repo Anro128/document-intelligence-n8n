@@ -4,6 +4,21 @@ Vision-LLM extraction pipeline for dealership paperwork (invoices, KTP ID cards,
 
 ![Architecture](docs/architecture.png)
 
+## Workflows
+
+Rendered from the exported workflow files with `python docs/render_workflows.py`.
+
+| Workflow | Diagram |
+|---|---|
+| 01 Intake (orchestrator) | ![01](docs/workflows/01-intake.png) |
+| 02 Preprocess | ![02](docs/workflows/02-preprocess.png) |
+| 03 Classify | ![03](docs/workflows/03-classify.png) |
+| 04 Extract | ![04](docs/workflows/04-extract.png) |
+| 05 Validate | ![05](docs/workflows/05-validate.png) |
+| 06 Route and notify | ![06](docs/workflows/06-route-notify.png) |
+| 07 Error handler | ![07](docs/workflows/07-error-handler.png) |
+| 08 Weekly report | ![08](docs/workflows/08-weekly-report.png) |
+
 ## What it does
 
 1. A user sends a PDF, JPG or PNG to a Telegram bot.
