@@ -100,9 +100,8 @@ A dealership staff member (or customer) uploads a document via Telegram or a web
 - Append a row to the `documents` sheet with status `received`.
 
 ### WF-02 — Pre-process
-- PDF → page images (resize to a max width, e.g. 1600px).
-- Strip unneeded metadata.
-- Save binary to filesystem (not memory).
+- Images are resized to a max width of 1600px; PDFs are sent natively to the LLM and limited to 10 pages.
+- Binary is kept on the filesystem (not memory) and deleted after processing.
 
 ### WF-03 — Classify
 - Send the first page to the LLM: "Which document type is this?"
@@ -147,7 +146,7 @@ One spreadsheet, **`DocIntel_DB`**, with one tab per table. Row 1 holds column h
 | id | string (uuid) | Row key, generated in n8n |
 | source | string | telegram / webhook |
 | doc_type | string | invoice / ktp / spk / other |
-| status | string | received / extracted / valid / needs_review / failed |
+| status | string | received / extracted / valid / needs_review / approved / rejected / failed |
 | confidence | number | Classification confidence |
 | created_at | ISO datetime | |
 
